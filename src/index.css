@@ -1,0 +1,30 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap');
+@import 'tailwindcss';
+
+@theme inline {
+  --color-navy: #353e6c;
+  --color-orange: #ffa319;
+  --color-ivory: #faf8f4;
+  --color-green-badge: #4db874;
+}
+
+* {
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+body {
+  background: #f0ede8;
+}
+
+::-webkit-scrollbar { display: none; }
+
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.slide-up { animation: slideUp 0.28s cubic-bezier(0.32,0.72,0,1) both; }
+.fade-in  { animation: fadeIn  0.18s ease both; }
