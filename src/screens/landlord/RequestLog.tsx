@@ -3,13 +3,13 @@ import { NavHeader, Card, StatusBadge } from "../../ui";
 import { useAppData } from "../../store";
 import type { LandlordNavigate } from "./types";
 
-export default function RequestLog({ unitNumber, navigate }: { unitNumber: string; navigate: LandlordNavigate }) {
+export default function RequestLog({ unitNumber, buildingId, navigate }: { unitNumber: string; buildingId: number; navigate: LandlordNavigate }) {
   const { complaints } = useAppData();
   const processed = complaints.filter((c) => c.unitNumber === unitNumber && c.status !== "접수됨");
 
   return (
     <div className="flex flex-col h-full" style={{ background: IVORY }}>
-      <NavHeader title="접수 내역" onBack={() => navigate("requests-received", { unitNumber })} />
+      <NavHeader title="접수 내역" onBack={() => navigate("requests-received", { unitNumber, buildingId })} />
       <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
         {processed.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-56 text-center">
@@ -22,7 +22,7 @@ export default function RequestLog({ unitNumber, navigate }: { unitNumber: strin
           </div>
         ) : (
           processed.map((req) => (
-            <button key={req.id} onClick={() => navigate("request-log-detail", { unitNumber, complaintId: req.id })} className="w-full text-left active:scale-[0.98] transition-transform">
+            <button key={req.id} onClick={() => navigate("request-log-detail", { unitNumber, buildingId, complaintId: req.id })} className="w-full text-left active:scale-[0.98] transition-transform">
               <Card className="p-4">
                 <div className="flex items-start gap-3 mb-3">
                   <span className="text-2xl flex-shrink-0">{req.emoji}</span>

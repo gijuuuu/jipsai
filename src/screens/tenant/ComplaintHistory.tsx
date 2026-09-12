@@ -1,12 +1,18 @@
+import { useState } from "react";
 import { NAVY, IVORY } from "../../theme";
-import { NavHeader, StatusBadge } from "../../ui";
+import { NavHeader, StatusBadge, Pagination } from "../../ui";
 import { useAppData } from "../../store";
 import { CURRENT_TENANT } from "../../data";
 import type { TenantNavigate } from "./types";
 
+const PAGE_SIZE = 5;
+
 export default function ComplaintHistoryScreen({ navigate }: { navigate: TenantNavigate }) {
   const { complaints } = useAppData();
   const mine = complaints.filter((c) => c.unitNumber === CURRENT_TENANT.unitNumber);
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(mine.length / PAGE_SIZE));
+  const pageItems = mine.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div className="flex flex-col h-full" style={{ background: IVORY }}>
@@ -17,7 +23,7 @@ export default function ComplaintHistoryScreen({ navigate }: { navigate: TenantN
             접수한 불편사항이 없습니다.
           </p>
         )}
-        {mine.map((item) => (
+        {pageItems.map((item) => (
           <button
             key={item.id}
             onClick={() => navigate("complaint-history-detail", { itemId: item.id })}
@@ -59,6 +65,7 @@ export default function ComplaintHistoryScreen({ navigate }: { navigate: TenantN
           </button>
         ))}
       </div>
+      <Pagination page={page} totalPages={totalPages} onChange={setPage} />
     </div>
   );
 }

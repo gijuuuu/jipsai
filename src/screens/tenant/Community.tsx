@@ -1,10 +1,12 @@
 import { NAVY, ORANGE, IVORY } from "../../theme";
 import { NavHeader } from "../../ui";
 import { useAppData } from "../../store";
+import { BUILDING } from "../../data";
 import type { TenantNavigate } from "./types";
 
 export default function CommunityScreen({ navigate }: { navigate: TenantNavigate }) {
-  const { notices, freePosts } = useAppData();
+  const { notices: allNotices, freePosts } = useAppData();
+  const notices = allNotices.filter((n) => n.buildingId === BUILDING.id);
 
   return (
     <div className="flex flex-col h-full" style={{ background: IVORY }}>

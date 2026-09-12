@@ -1,20 +1,39 @@
+import { useState } from "react";
 import { NAVY, IVORY } from "../../theme";
-import { NavHeader, Card, StatusBadge } from "../../ui";
+import { NavHeader, Card, StatusBadge, Pagination } from "../../ui";
 import { IconTool } from "../../icons";
 import { useAppData } from "../../store";
-import { BUILDING } from "../../data";
-import type { LandlordNavigate } from "./types";
+import { getBuilding } from "../../data";
+import type { LandlordNavigate, LandlordScreen } from "./types";
 
-export default function RequestsReceived({ unitNumber, navigate }: { unitNumber: string; navigate: LandlordNavigate }) {
+const PAGE_SIZE = 5;
+
+export default function RequestsReceived({
+  unitNumber,
+  buildingId,
+  backTo,
+  navigate,
+}: {
+  unitNumber: string;
+  buildingId: number;
+  backTo: LandlordScreen;
+  navigate: LandlordNavigate;
+}) {
   const { complaints } = useAppData();
-  const tenant = BUILDING.units.find((u) => u.number === unitNumber)?.tenantName ?? "-";
+  const building = getBuilding(buildingId);
+  const tenant = building.units.find((u) => u.number === unitNumber)?.tenantName ?? "-";
   const requests = complaints.filter((c) => c.unitNumber === unitNumber);
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(requests.length / PAGE_SIZE));
+  const pageItems = requests.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const goBack = () => (backTo === "home" ? navigate("home") : navigate("building-detail", { buildingId }));
 
   return (
     <div className="flex flex-col h-full" style={{ background: IVORY }}>
       <NavHeader
         title={`${unitNumber}호 요청함`}
-        onBack={() => navigate("building-detail")}
+        onBack={goBack}
         rightEl={
           <button onClick={() => navigate("request-log", { unitNumber })} className="ml-auto text-xs font-extrabold px-3 py-1.5 rounded-full active:scale-95 flex-shrink-0" style={{ background: "rgba(255,255,255,0.15)", color: "#ffa319" }}>
             접수 내역
@@ -23,7 +42,7 @@ export default function RequestsReceived({ unitNumber, navigate }: { unitNumber:
       />
       <div className="px-5 py-2.5" style={{ background: "#f3ede3" }}>
         <p className="text-xs" style={{ color: NAVY, opacity: 0.55 }}>
-          {tenant} · 하자신청 {requests.length}건
+          {building.name} {unitNumber}호 · {tenant} · 하자신청 {requests.length}건
         </p>
       </div>
       <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
@@ -34,7 +53,7 @@ export default function RequestsReceived({ unitNumber, navigate }: { unitNumber:
             </p>
           </div>
         ) : (
-          requests.map((req) => {
+          pageItems.map((req) => {
             const accepted = req.status !== "접수됨";
             return (
               <Card key={req.id} className="overflow-hidden">
@@ -73,6 +92,7 @@ export default function RequestsReceived({ unitNumber, navigate }: { unitNumber:
           })
         )}
       </div>
+      <Pagination page={page} totalPages={totalPages} onChange={setPage} />
     </div>
   );
 }

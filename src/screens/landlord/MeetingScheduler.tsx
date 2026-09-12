@@ -12,7 +12,17 @@ const CALENDAR_DATES = Array.from({ length: 35 }, (_, i) => {
   return { day: d, available: !UNAVAILABLE.includes(d) };
 });
 
-export default function MeetingScheduler({ unitNumber, complaintId, navigate }: { unitNumber: string; complaintId: number; navigate: LandlordNavigate }) {
+export default function MeetingScheduler({
+  unitNumber,
+  buildingId,
+  complaintId,
+  navigate,
+}: {
+  unitNumber: string;
+  buildingId: number;
+  complaintId: number;
+  navigate: LandlordNavigate;
+}) {
   const { complaints, updateComplaintStatus } = useAppData();
   const complaint = complaints.find((c) => c.id === complaintId);
   const [selectedDay, setSelectedDay] = useState<number | null>(complaint?.visitDays[0] ?? null);
@@ -26,7 +36,7 @@ export default function MeetingScheduler({ unitNumber, complaintId, navigate }: 
     try {
       await updateComplaintStatus(complaintId, "확인중", message.trim(), "landlord");
       setConfirmed(true);
-      setTimeout(() => navigate("request-log", { unitNumber }), 1200);
+      setTimeout(() => navigate("request-log", { unitNumber, buildingId }), 1200);
     } catch (err) {
       alert(err instanceof Error ? err.message : "처리에 실패했습니다.");
     } finally {
@@ -36,7 +46,7 @@ export default function MeetingScheduler({ unitNumber, complaintId, navigate }: 
 
   return (
     <div className="flex flex-col h-full" style={{ background: IVORY }}>
-      <NavHeader title="방문 일정 조율" onBack={() => navigate("requests-received", { unitNumber })} />
+      <NavHeader title="방문 일정 조율" onBack={() => navigate("requests-received", { unitNumber, buildingId })} />
       <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-4">
         <div className="rounded-xl px-4 py-3" style={{ background: "#eef0fa" }}>
           <p className="text-xs" style={{ color: NAVY, opacity: 0.5 }}>
