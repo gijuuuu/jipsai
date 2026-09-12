@@ -16,6 +16,7 @@ interface AppData {
     emoji: string;
     description: string;
     visitDays: number[];
+    photos?: string[];
   }) => Promise<Complaint>;
   updateComplaintStatus: (id: number, status: ComplaintStatus, memo?: string, actor?: "tenant" | "landlord") => Promise<void>;
 
@@ -23,7 +24,7 @@ interface AppData {
   addNotice: (n: { title: string; content: string; buildingId: number }) => Promise<Notice>;
 
   freePosts: FreePost[];
-  addFreePost: (p: { title: string; body: string; isAnonymous: boolean; unitNumber: string }) => Promise<FreePost>;
+  addFreePost: (p: { title: string; body: string; isAnonymous: boolean; unitNumber: string; photos?: string[] }) => Promise<FreePost>;
   addComment: (postId: number, author: string, text: string) => Promise<void>;
   toggleLike: (postId: number) => Promise<void>;
 

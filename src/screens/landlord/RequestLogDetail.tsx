@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NAVY, ORANGE, IVORY } from "../../theme";
-import { NavHeader, Card, StatusBadge } from "../../ui";
+import { NavHeader, Card, StatusBadge, PhotoGrid } from "../../ui";
 import { useAppData } from "../../store";
 import type { LandlordNavigate } from "./types";
 
@@ -68,13 +68,7 @@ export default function RequestLogDetail({
           <p className="text-xs font-extrabold mb-3 opacity-55" style={{ color: NAVY }}>
             첨부 사진
           </p>
-          <div className="flex gap-2">
-            {[0, 1].map((i) => (
-              <div key={i} className="w-24 h-24 rounded-xl flex items-center justify-center" style={{ background: "#eef0fa" }}>
-                <span className="text-2xl">🖼️</span>
-              </div>
-            ))}
-          </div>
+          <PhotoGrid photos={req.photos} size={96} />
         </Card>
 
         <Card className="p-4">

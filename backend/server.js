@@ -9,9 +9,51 @@
 // 서버를 재시작하거나 프론트를 새로고침해도 사라지지 않습니다.
 
 import { createServer } from "node:http";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import path from "node:path";
+import { randomBytes } from "node:crypto";
+import { fileURLToPath } from "node:url";
 import { db } from "./db.js";
 
 const PORT = Number(process.env.API_PORT || 4000);
+
+// ─── 사진 첨부(파일 업로드) ─────────────────────────────────────────────────
+// 새 npm 의존성 없이(multipart 파서 없이) 처리하기 위해, 프론트에서 사진을
+// base64 data URL 문자열로 인코딩해 JSON body에 담아 보내면, 여기서 디코딩해
+// backend/uploads/ 디렉터리에 실제 파일로 저장하고 그 경로("/uploads/xxx.jpg")만
+// DB에 남깁니다. 정적 파일 응답은 아래 GET /uploads/:file 라우트가 담당합니다.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const UPLOADS_DIR = path.join(__dirname, "uploads");
+mkdirSync(UPLOADS_DIR, { recursive: true });
+
+const DATA_URL_RE = /^data:image\/(png|jpe?g|webp|gif);base64,([a-zA-Z0-9+/=]+)$/;
+const EXT_BY_MIME = { png: "png", jpg: "jpg", jpeg: "jpg", webp: "webp", gif: "gif" };
+const CONTENT_TYPE_BY_EXT = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".gif": "image/gif" };
+
+function saveImageDataUrl(dataUrl) {
+  if (typeof dataUrl !== "string") return null;
+  const match = dataUrl.match(DATA_URL_RE);
+  if (!match) return null; // 이미 "/uploads/..." 형태(수정 없이 재전송된 기존 사진)면 그대로 통과시키지 않고 무시
+  const ext = EXT_BY_MIME[match[1].toLowerCase()] ?? "jpg";
+  const buffer = Buffer.from(match[2], "base64");
+  const filename = `${Date.now()}-${randomBytes(6).toString("hex")}.${ext}`;
+  writeFileSync(path.join(UPLOADS_DIR, filename), buffer);
+  return `/uploads/${filename}`;
+}
+
+function saveImages(photos) {
+  if (!Array.isArray(photos)) return [];
+  const saved = [];
+  for (const p of photos) {
+    if (typeof p === "string" && p.startsWith("/uploads/")) {
+      saved.push(p); // 이미 저장된 사진 경로(그대로 유지)
+    } else {
+      const url = saveImageDataUrl(p);
+      if (url) saved.push(url);
+    }
+  }
+  return saved;
+}
 
 // ─── 유틸 ───────────────────────────────────────────────────────────────────
 function todayLabel() {
@@ -52,14 +94,26 @@ function sendError(res, status, message) {
   sendJson(res, status, { error: message });
 }
 
+// 사진을 base64로 실어 보내면 원본보다 용량이 커지므로(약 1.33배) 여유 있게
+// 25MB까지 허용합니다 (프론트에서 업로드 전에 사진을 리사이즈/압축하므로
+// 실제로는 이보다 훨씬 작게 옵니다).
+const MAX_BODY_BYTES = 25 * 1024 * 1024;
+
 function readBody(req) {
   return new Promise((resolve, reject) => {
     let raw = "";
+    let tooLarge = false;
     req.on("data", (chunk) => {
+      if (tooLarge) return;
       raw += chunk;
-      if (raw.length > 5_000_000) req.destroy();
+      if (raw.length > MAX_BODY_BYTES) {
+        tooLarge = true;
+        reject(new Error("요청 용량이 너무 큽니다. 사진 개수나 용량을 줄여주세요."));
+        req.destroy();
+      }
     });
     req.on("end", () => {
+      if (tooLarge) return;
       if (!raw) return resolve({});
       try {
         resolve(JSON.parse(raw));
@@ -67,7 +121,9 @@ function readBody(req) {
         reject(new Error("잘못된 JSON 형식입니다."));
       }
     });
-    req.on("error", reject);
+    req.on("error", (err) => {
+      if (!tooLarge) reject(err);
+    });
   });
 }
 
@@ -86,6 +142,7 @@ function complaintRow(r) {
     status: r.status,
     memo: r.memo,
     timeline: JSON.parse(r.timeline),
+    photos: JSON.parse(r.photos ?? "[]"),
   };
 }
 
@@ -125,6 +182,7 @@ function postRow(r, tenantId) {
     body: r.body,
     date: r.date,
     hasPhoto: !!r.has_photo,
+    photos: JSON.parse(r.photos ?? "[]"),
     likes,
     likedByMe,
     comments,
@@ -150,6 +208,24 @@ const server = createServer(async (req, res) => {
       return sendJson(res, 200, { ok: true });
     }
 
+    // ── 업로드된 사진 정적 파일 서빙 ─────────────────────────────────────────
+    if (method === "GET" && pathname.startsWith("/uploads/")) {
+      const filename = path.basename(pathname); // 경로 조작(../) 방지 — 파일명만 취급
+      const filePath = path.join(UPLOADS_DIR, filename);
+      if (!filePath.startsWith(UPLOADS_DIR) || !existsSync(filePath)) {
+        res.writeHead(404, { "Access-Control-Allow-Origin": "*" });
+        return res.end("이미지를 찾을 수 없습니다.");
+      }
+      const ext = path.extname(filename).toLowerCase();
+      const contentType = CONTENT_TYPE_BY_EXT[ext] ?? "application/octet-stream";
+      res.writeHead(200, {
+        "Content-Type": contentType,
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "Access-Control-Allow-Origin": "*",
+      });
+      return res.end(readFileSync(filePath));
+    }
+
     // ── 불편사항(하자신청) ──────────────────────────────────────────────────
     if (method === "GET" && pathname === "/api/complaints") {
       const unitNumber = url.searchParams.get("unitNumber");
@@ -160,16 +236,17 @@ const server = createServer(async (req, res) => {
 
     if (method === "POST" && pathname === "/api/complaints") {
       const body = await readBody(req);
-      const { unitNumber, tenantName, category, subcategory, emoji, description, visitDays } = body;
+      const { unitNumber, tenantName, category, subcategory, emoji, description, visitDays, photos } = body;
       if (!unitNumber || !tenantName || !category || !subcategory || !description) {
         return sendError(res, 400, "unitNumber, tenantName, category, subcategory, description는 필수입니다.");
       }
       const createdAt = todayLabel();
       const timeline = [`${createdAt} 접수됨`];
+      const savedPhotos = saveImages(photos);
       const info = db
         .prepare(
-          `INSERT INTO complaints (unit_number, tenant_name, category, subcategory, emoji, description, visit_days, created_at, status, memo, timeline)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, '접수됨', NULL, ?)`
+          `INSERT INTO complaints (unit_number, tenant_name, category, subcategory, emoji, description, visit_days, created_at, status, memo, timeline, photos)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, '접수됨', NULL, ?, ?)`
         )
         .run(
           unitNumber,
@@ -180,7 +257,8 @@ const server = createServer(async (req, res) => {
           description,
           JSON.stringify(Array.isArray(visitDays) ? visitDays : []),
           createdAt,
-          JSON.stringify(timeline)
+          JSON.stringify(timeline),
+          JSON.stringify(savedPhotos)
         );
       const row = db.prepare(`SELECT * FROM complaints WHERE id = ?`).get(Number(info.lastInsertRowid));
       return sendJson(res, 201, complaintRow(row));
@@ -248,16 +326,17 @@ const server = createServer(async (req, res) => {
 
     if (method === "POST" && pathname === "/api/posts") {
       const body = await readBody(req);
-      const { title, body: content, isAnonymous, unitNumber } = body;
+      const { title, body: content, isAnonymous, unitNumber, photos } = body;
       if (!title?.trim() || !content?.trim() || !unitNumber) {
         return sendError(res, 400, "title, body, unitNumber는 필수입니다.");
       }
       const anon = isAnonymous !== false; // 기본값: 익명
       const author = anon ? "익명" : `${unitNumber}호`;
       const date = todayLabel();
+      const savedPhotos = saveImages(photos);
       const info = db
-        .prepare(`INSERT INTO posts (author, is_anonymous, unit_number, title, body, date, has_photo) VALUES (?, ?, ?, ?, ?, ?, 0)`)
-        .run(author, anon ? 1 : 0, unitNumber, title.trim(), content.trim(), date);
+        .prepare(`INSERT INTO posts (author, is_anonymous, unit_number, title, body, date, has_photo, photos) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
+        .run(author, anon ? 1 : 0, unitNumber, title.trim(), content.trim(), date, savedPhotos.length > 0 ? 1 : 0, JSON.stringify(savedPhotos));
       const row = db.prepare(`SELECT * FROM posts WHERE id = ?`).get(Number(info.lastInsertRowid));
       return sendJson(res, 201, postRow(row, undefined));
     }

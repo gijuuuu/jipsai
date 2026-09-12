@@ -32,7 +32,8 @@ db.exec(`
     created_at TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT '접수됨',
     memo TEXT,
-    timeline TEXT NOT NULL DEFAULT '[]'
+    timeline TEXT NOT NULL DEFAULT '[]',
+    photos TEXT NOT NULL DEFAULT '[]'
   );
 
   CREATE TABLE IF NOT EXISTS notices (
@@ -51,7 +52,8 @@ db.exec(`
     title TEXT NOT NULL,
     body TEXT NOT NULL,
     date TEXT NOT NULL,
-    has_photo INTEGER NOT NULL DEFAULT 0
+    has_photo INTEGER NOT NULL DEFAULT 0,
+    photos TEXT NOT NULL DEFAULT '[]'
   );
 
   CREATE TABLE IF NOT EXISTS comments (
@@ -80,6 +82,17 @@ db.exec(`
     UNIQUE (unit_number, year_month)
   );
 `);
+
+// 이미 만들어진 data.sqlite 파일(사진 기능 추가 이전 버전)에도 photos 컬럼이
+// 없을 수 있으므로, 없으면 추가해줍니다 (있으면 아무 것도 하지 않음).
+function ensureColumn(table, column, ddl) {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all();
+  if (!cols.some((c) => c.name === column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${ddl}`);
+  }
+}
+ensureColumn("complaints", "photos", "photos TEXT NOT NULL DEFAULT '[]'");
+ensureColumn("posts", "photos", "photos TEXT NOT NULL DEFAULT '[]'");
 
 function count(table) {
   return db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get().n;

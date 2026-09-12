@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NAVY, ORANGE, IVORY } from "../../theme";
-import { NavHeader, StatusBadge } from "../../ui";
+import { NavHeader, StatusBadge, PhotoGrid } from "../../ui";
 import { useAppData } from "../../store";
 import type { TenantNavigate } from "./types";
 
@@ -60,13 +60,7 @@ export default function ComplaintHistoryDetailScreen({ itemId, navigate }: { ite
           <div className="text-xs font-extrabold mb-2 opacity-55" style={{ color: NAVY }}>
             첨부 사진
           </div>
-          <div className="flex gap-2">
-            {[1, 2].map((n) => (
-              <div key={n} className="w-20 h-20 rounded-xl flex items-center justify-center" style={{ background: "#eef0fa", border: `1.5px solid ${NAVY}25` }}>
-                <span style={{ fontSize: 28 }}>🖼️</span>
-              </div>
-            ))}
-          </div>
+          <PhotoGrid photos={item.photos} size={80} />
         </div>
         <div className="rounded-2xl border-2 bg-white px-4 py-4" style={{ borderColor: NAVY }}>
           <div className="text-xs font-extrabold mb-3 opacity-55" style={{ color: NAVY }}>

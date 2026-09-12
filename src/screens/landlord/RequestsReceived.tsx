@@ -76,11 +76,15 @@ export default function RequestsReceived({
                       {req.createdAt}
                     </p>
                   </div>
-                  <div className="mx-4 mb-4 h-24 rounded-xl flex items-center justify-center" style={{ background: "#f5f2ee" }}>
-                    <div className="text-center" style={{ color: NAVY, opacity: 0.3 }}>
-                      <IconTool size={22} />
-                      <p className="text-[10px] mt-1">첨부 이미지</p>
-                    </div>
+                  <div className="mx-4 mb-4 h-24 rounded-xl overflow-hidden flex items-center justify-center" style={{ background: "#f5f2ee" }}>
+                    {req.photos.length > 0 ? (
+                      <img src={req.photos[0]} alt="첨부 사진" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="text-center" style={{ color: NAVY, opacity: 0.3 }}>
+                        <IconTool size={22} />
+                        <p className="text-[10px] mt-1">첨부 이미지 없음</p>
+                      </div>
+                    )}
                   </div>
                   <div className="px-4 pb-4">
                     <div

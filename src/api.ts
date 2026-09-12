@@ -30,6 +30,7 @@ export function createComplaint(payload: {
   emoji: string;
   description: string;
   visitDays: number[];
+  photos?: string[]; // base64 data URL 목록 (사진 첨부)
 }): Promise<Complaint> {
   return request<Complaint>("/complaints", { method: "POST", body: JSON.stringify(payload) });
 }
@@ -55,7 +56,13 @@ export function fetchPosts(tenantId: string): Promise<FreePost[]> {
   return request<FreePost[]>(`/posts?tenantId=${encodeURIComponent(tenantId)}`);
 }
 
-export function createPost(payload: { title: string; body: string; unitNumber: string; isAnonymous: boolean }): Promise<FreePost> {
+export function createPost(payload: {
+  title: string;
+  body: string;
+  unitNumber: string;
+  isAnonymous: boolean;
+  photos?: string[]; // base64 data URL 목록 (사진 첨부)
+}): Promise<FreePost> {
   return request<FreePost>("/posts", { method: "POST", body: JSON.stringify(payload) });
 }
 
