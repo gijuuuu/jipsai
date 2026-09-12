@@ -38,6 +38,15 @@ export default defineConfig(({ mode }) => {
           '**/.figma/**',
 ],
       },
+      // 백엔드(backend/server.js, 기본 4000번 포트)로 /api 요청을 프록시합니다.
+      // 터미널 1: npm run server (http://localhost:4000)
+      // 터미널 2: npm run dev
+      proxy: {
+        '/api': {
+          target: `http://localhost:${process.env.API_PORT || 4000}`,
+          changeOrigin: true,
+        },
+      },
     },
     preview: {
       host: process.env.FIGMA_DEV_SERVER_HOST || '0.0.0.0',

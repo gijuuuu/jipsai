@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import type { ReactNode, CSSProperties } from "react";
 import { NAVY, ORANGE, IVORY, STATUS_COLORS, PAID_COLORS } from "./theme";
 import { IconArrowLeft } from "./icons";
@@ -136,6 +137,34 @@ export function Card({ children, className = "", onClick, style }: { children: R
       style={{ borderColor: NAVY, ...style }}
     >
       {children}
+    </div>
+  );
+}
+
+// ─── 성공 토스트 ("불편사항이 접수되었습니다." 등) ────────────────────────
+// 잠깐 떴다가 일정 시간 후 자동으로 사라지고, X를 누르면 바로 사라집니다.
+export function Toast({ message, onClose }: { message: string; onClose: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onClose, 2200);
+    return () => clearTimeout(t);
+  }, [onClose]);
+
+  return (
+    <div className="absolute left-4 right-4 z-50" style={{ top: 16 }}>
+      <div
+        className="flex items-center gap-3 rounded-2xl px-4 py-3.5 toast-drop"
+        style={{ background: NAVY, boxShadow: "0 12px 30px rgba(53,62,108,0.35)" }}
+      >
+        <span className="flex-1 text-sm font-bold text-white leading-snug">{message}</span>
+        <button
+          onClick={onClose}
+          aria-label="닫기"
+          className="flex items-center justify-center rounded-full flex-shrink-0 active:scale-90 transition-transform"
+          style={{ width: 22, height: 22, background: "rgba(255,255,255,0.18)", color: "white", fontSize: 12, fontWeight: 800 }}
+        >
+          ✕
+        </button>
+      </div>
     </div>
   );
 }

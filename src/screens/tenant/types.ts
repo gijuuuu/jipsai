@@ -1,4 +1,4 @@
-import type { Complaint, ComplaintCategory } from "../../data";
+import type { ComplaintCategory } from "../../data";
 
 export type TenantScreen =
   | "home"
@@ -15,7 +15,7 @@ export type TenantScreen =
 export interface TenantNavExtra {
   category?: ComplaintCategory;
   subcategory?: string;
-  item?: Complaint;
+  itemId?: number;
   postId?: number;
 }
 

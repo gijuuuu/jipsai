@@ -1,9 +1,43 @@
+import { useState } from "react";
 import { NAVY, ORANGE, IVORY } from "../../theme";
 import { NavHeader, StatusBadge } from "../../ui";
-import type { Complaint } from "../../data";
+import { useAppData } from "../../store";
 import type { TenantNavigate } from "./types";
 
-export default function ComplaintHistoryDetailScreen({ item, navigate }: { item: Complaint; navigate: TenantNavigate }) {
+export default function ComplaintHistoryDetailScreen({ itemId, navigate }: { itemId: number; navigate: TenantNavigate }) {
+  const { complaints, updateComplaintStatus } = useAppData();
+  const item = complaints.find((c) => c.id === itemId);
+  const [resolving, setResolving] = useState(false);
+  const [justResolved, setJustResolved] = useState(false);
+
+  if (!item) {
+    return (
+      <div className="flex flex-col h-full" style={{ background: IVORY }}>
+        <NavHeader title="접수 내역" onBack={() => navigate("complaint-history")} />
+        <div className="flex-1 flex items-center justify-center">
+          <span className="text-sm font-medium" style={{ color: NAVY, opacity: 0.4 }}>
+            해당 접수 내역을 찾을 수 없습니다.
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  const canResolve = item.status === "확인중" || item.status === "처리중";
+
+  const handleResolve = async () => {
+    if (resolving) return;
+    setResolving(true);
+    try {
+      await updateComplaintStatus(item.id, "완료", undefined, "tenant");
+      setJustResolved(true);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "처리에 실패했습니다.");
+    } finally {
+      setResolving(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full" style={{ background: IVORY }}>
       <NavHeader title={`${item.category} > ${item.subcategory}`} subtitle="접수 내역 상세" onBack={() => navigate("complaint-history")} />
@@ -67,6 +101,24 @@ export default function ComplaintHistoryDetailScreen({ item, navigate }: { item:
           </div>
         )}
       </div>
+      {(canResolve || justResolved) && (
+        <div className="px-4 pb-8 pt-3 bg-white" style={{ borderTop: "1px solid #eee" }}>
+          {item.status === "완료" || justResolved ? (
+            <div className="rounded-xl py-3.5 text-center" style={{ background: "#e8f8ee" }}>
+              <p className="text-sm font-bold" style={{ color: "#1f9e52" }}>처리 완료 처리되었습니다 ✓</p>
+            </div>
+          ) : (
+            <button
+              onClick={handleResolve}
+              disabled={resolving}
+              className="w-full font-extrabold rounded-2xl py-4 text-sm active:scale-95 transition-transform"
+              style={{ background: NAVY, color: "#fff", opacity: resolving ? 0.6 : 1 }}
+            >
+              {resolving ? "처리 중..." : "처리 완료로 확인하기"}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

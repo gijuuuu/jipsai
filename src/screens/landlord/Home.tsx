@@ -11,6 +11,8 @@ export default function LandlordHome({ navigate, onExit }: { navigate: LandlordN
   const septFees = fees.filter((f) => f.yearMonth === "2026-09");
   const unpaidCount = septFees.filter((f) => f.status !== "paid").length;
   const pendingComplaints = complaints.filter((c) => c.status !== "완료").length;
+  // 아직 확인하지 않은(=방금 접수된) 하자신청 — 홈 화면 알림으로 노출
+  const newComplaints = complaints.filter((c) => c.status === "접수됨");
 
   const menus = [
     { icon: <IconMegaphone size={28} />, label: "공지 관리", sub: "세입자 전체에게 공지 작성", s: "notice-manage" as const },
@@ -45,6 +47,38 @@ export default function LandlordHome({ navigate, onExit }: { navigate: LandlordN
       </div>
 
       <div className="flex flex-col gap-4 px-4 pt-4 pb-8">
+        {/* 새 불편사항 알림 */}
+        {newComplaints.length > 0 && (
+          <div className="rounded-2xl overflow-hidden border-2" style={{ borderColor: ORANGE }}>
+            <div className="flex items-center gap-2 px-4 py-2.5" style={{ background: "#fff0d4" }}>
+              <span style={{ fontSize: 15 }}>🔔</span>
+              <span className="text-xs font-extrabold" style={{ color: "#8a6a30" }}>
+                새 불편사항 접수 {newComplaints.length}건
+              </span>
+            </div>
+            <div className="bg-white divide-y" style={{ borderColor: "#f0ebe3" }}>
+              {newComplaints.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => navigate("requests-received", { unitNumber: c.unitNumber })}
+                  className="w-full flex items-center gap-2.5 px-4 py-3 text-left active:scale-[0.98] transition-transform"
+                >
+                  <span style={{ fontSize: 18 }}>{c.emoji}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold truncate" style={{ color: NAVY }}>
+                      {c.unitNumber}호 {c.tenantName} · {c.category} &gt; {c.subcategory}
+                    </p>
+                    <p className="text-xs mt-0.5" style={{ color: NAVY, opacity: 0.4 }}>
+                      {c.createdAt}
+                    </p>
+                  </div>
+                  <IconChevronRight />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Stat row */}
         <div className="grid grid-cols-3 gap-2.5">
           {[

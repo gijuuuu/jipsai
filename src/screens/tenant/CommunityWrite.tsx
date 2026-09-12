@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NAVY, ORANGE, IVORY } from "../../theme";
-import { NavHeader } from "../../ui";
+import { NavHeader, Toast } from "../../ui";
 import { IconCamera } from "../../icons";
 import { useAppData } from "../../store";
 import { CURRENT_TENANT } from "../../data";
@@ -10,21 +10,32 @@ export default function CommunityWriteScreen({ navigate }: { navigate: TenantNav
   const { addFreePost } = useAppData();
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [isAnonymous, setIsAnonymous] = useState(true); // 기본값: 익명
+  const [submitting, setSubmitting] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
-  const submit = () => {
-    if (!title.trim() || !body.trim()) return;
-    addFreePost({ author: `${CURRENT_TENANT.unitNumber}호`, title: title.trim(), body: body.trim() });
-    navigate("community");
+  const submit = async () => {
+    if (!title.trim() || !body.trim() || submitting) return;
+    setSubmitting(true);
+    try {
+      await addFreePost({ title: title.trim(), body: body.trim(), isAnonymous, unitNumber: CURRENT_TENANT.unitNumber });
+      setShowToast(true);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "등록에 실패했습니다. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
-    <div className="flex flex-col h-full" style={{ background: IVORY }}>
+    <div className="flex flex-col h-full relative" style={{ background: IVORY }}>
+      {showToast && <Toast message="글이 작성되었습니다." onClose={() => navigate("community")} />}
       <NavHeader
         title="글쓰기"
         onBack={() => navigate("community")}
         rightEl={
-          <button onClick={submit} className="ml-auto text-sm font-extrabold px-1 active:scale-95 flex-shrink-0" style={{ color: ORANGE }}>
-            등록
+          <button onClick={submit} disabled={submitting} className="ml-auto text-sm font-extrabold px-1 active:scale-95 flex-shrink-0" style={{ color: ORANGE, opacity: submitting ? 0.5 : 1 }}>
+            {submitting ? "등록 중..." : "등록"}
           </button>
         }
       />
@@ -47,7 +58,7 @@ export default function CommunityWriteScreen({ navigate }: { navigate: TenantNav
             style={{ color: NAVY, background: "transparent" }}
           />
         </div>
-        <div className="px-4 pb-6">
+        <div className="px-4 pb-3">
           <button
             className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed active:scale-95 transition-transform"
             style={{ width: 80, height: 80, borderColor: NAVY, opacity: 0.45 }}
@@ -55,6 +66,29 @@ export default function CommunityWriteScreen({ navigate }: { navigate: TenantNav
             <IconCamera size={26} />
             <span style={{ fontSize: 10, fontWeight: 600, color: NAVY }}>사진 추가</span>
           </button>
+        </div>
+        <div className="px-4 pb-6">
+          <div className="flex items-center justify-between rounded-2xl border-2 bg-white px-4 py-3.5" style={{ borderColor: NAVY }}>
+            <div>
+              <p className="text-sm font-extrabold" style={{ color: NAVY }}>
+                익명으로 작성
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: NAVY, opacity: 0.5 }}>
+                {isAnonymous ? "\"익명\"으로 표시돼요" : `\"${CURRENT_TENANT.unitNumber}호\"로 표시돼요`}
+              </p>
+            </div>
+            <button
+              onClick={() => setIsAnonymous((v) => !v)}
+              aria-label="익명 작성 여부 전환"
+              className="relative flex-shrink-0 rounded-full transition-colors"
+              style={{ width: 48, height: 28, background: isAnonymous ? ORANGE : "#ddd6c8" }}
+            >
+              <span
+                className="absolute top-0.5 rounded-full bg-white transition-transform"
+                style={{ width: 22, height: 22, left: 3, transform: isAnonymous ? "translateX(20px)" : "translateX(0)", boxShadow: "0 1px 3px rgba(0,0,0,0.25)" }}
+              />
+            </button>
+          </div>
         </div>
       </div>
     </div>

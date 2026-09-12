@@ -7,9 +7,9 @@ import { CURRENT_TENANT } from "../../data";
 import type { TenantNavigate } from "./types";
 
 export default function CommunityDetailScreen({ postId, navigate }: { postId: number; navigate: TenantNavigate }) {
-  const { freePosts, addComment } = useAppData();
+  const { freePosts, addComment, toggleLike } = useAppData();
   const post = freePosts.find((p) => p.id === postId);
-  const [liked, setLiked] = useState(false);
+  const [liking, setLiking] = useState(false);
   const [comment, setComment] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -26,12 +26,24 @@ export default function CommunityDetailScreen({ postId, navigate }: { postId: nu
     );
   }
 
-  const likeCount = post.likes + (liked ? 1 : 0);
+  const liked = !!post.likedByMe;
 
   const submitComment = () => {
     if (!comment.trim()) return;
     addComment(post.id, `${CURRENT_TENANT.unitNumber}호`, comment.trim());
     setComment("");
+  };
+
+  const handleLike = async () => {
+    if (liking) return;
+    setLiking(true);
+    try {
+      await toggleLike(post.id);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "처리에 실패했습니다.");
+    } finally {
+      setLiking(false);
+    }
   };
 
   return (
@@ -61,10 +73,10 @@ export default function CommunityDetailScreen({ postId, navigate }: { postId: nu
           </div>
         )}
         <div className="flex items-center gap-4 py-3 border-t border-b mb-4" style={{ borderColor: "#eee" }}>
-          <button onClick={() => setLiked((l) => !l)} className="flex items-center gap-1.5 active:scale-95 transition-transform">
+          <button onClick={handleLike} disabled={liking} className="flex items-center gap-1.5 active:scale-95 transition-transform">
             <IconHeart filled={liked} size={22} />
             <span className="text-sm font-bold" style={{ color: liked ? ORANGE : NAVY, opacity: liked ? 1 : 0.55 }}>
-              {likeCount}
+              {post.likes}
             </span>
           </button>
           <button onClick={() => inputRef.current?.focus()} className="flex items-center gap-1.5 active:scale-95 transition-transform">

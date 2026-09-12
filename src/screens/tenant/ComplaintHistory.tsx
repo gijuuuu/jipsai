@@ -20,7 +20,7 @@ export default function ComplaintHistoryScreen({ navigate }: { navigate: TenantN
         {mine.map((item) => (
           <button
             key={item.id}
-            onClick={() => navigate("complaint-history-detail", { item })}
+            onClick={() => navigate("complaint-history-detail", { itemId: item.id })}
             className="w-full text-left rounded-2xl border-2 bg-white overflow-hidden active:scale-[0.98] transition-transform"
             style={{ borderColor: NAVY }}
           >
