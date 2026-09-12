@@ -5,7 +5,7 @@ import { IconCamera } from "../../icons";
 import { useAppData } from "../../store";
 import type { LandlordNavigate } from "./types";
 
-export default function NoticeWriteScreen({ navigate }: { navigate: LandlordNavigate }) {
+export default function NoticeWriteScreen({ buildingId, navigate }: { buildingId: number; navigate: LandlordNavigate }) {
   const { addNotice } = useAppData();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -16,7 +16,7 @@ export default function NoticeWriteScreen({ navigate }: { navigate: LandlordNavi
     if (!title.trim() || !content.trim() || submitting) return;
     setSubmitting(true);
     try {
-      await addNotice({ title: title.trim(), content: content.trim() });
+      await addNotice({ title: title.trim(), content: content.trim(), buildingId });
       setShowToast(true);
     } catch (err) {
       alert(err instanceof Error ? err.message : "등록에 실패했습니다. 잠시 후 다시 시도해주세요.");
@@ -27,10 +27,10 @@ export default function NoticeWriteScreen({ navigate }: { navigate: LandlordNavi
 
   return (
     <div className="flex flex-col h-full relative" style={{ background: IVORY }}>
-      {showToast && <Toast message="공지가 등록되었습니다." onClose={() => navigate("notice-manage")} />}
+      {showToast && <Toast message="공지가 등록되었습니다." onClose={() => navigate("notice-manage", { buildingId })} />}
       <NavHeader
         title="공지 작성"
-        onBack={() => navigate("notice-manage")}
+        onBack={() => navigate("notice-manage", { buildingId })}
         rightEl={
           <button onClick={submit} disabled={submitting} className="ml-auto text-sm font-extrabold px-1 active:scale-95 flex-shrink-0" style={{ color: ORANGE, opacity: submitting ? 0.5 : 1 }}>
             {submitting ? "등록 중..." : "등록"}

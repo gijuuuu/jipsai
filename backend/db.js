@@ -37,6 +37,7 @@ db.exec(`
 
   CREATE TABLE IF NOT EXISTS notices (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    building_id INTEGER NOT NULL DEFAULT 1,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
     date TEXT NOT NULL
@@ -113,10 +114,11 @@ if (count("complaints") === 0) {
 }
 
 if (count("notices") === 0) {
-  const insert = db.prepare(`INSERT INTO notices (title, content, date) VALUES (?, ?, ?)`);
-  insert.run("9월 정기 소독 안내", "9월 20일(토) 오전 9시부터 건물 전체 정기 소독이 진행됩니다. 세대 내 소독을 원하시면 미리 문을 열어두시거나 관리자에게 연락 바랍니다.", "2026.09.10");
-  insert.run("9월 관리비 고지서 발송 안내", "2026년 9월분 관리비 고지서가 발송되었습니다. 납부 기한은 9월 25일입니다.", "2026.09.01");
-  insert.run("공용 세탁기 사용 시간 안내", "공용 세탁기는 오전 8시부터 오후 10시까지만 사용 가능합니다.", "2026.08.20");
+  const insert = db.prepare(`INSERT INTO notices (building_id, title, content, date) VALUES (?, ?, ?, ?)`);
+  insert.run(1, "9월 정기 소독 안내", "9월 20일(토) 오전 9시부터 건물 전체 정기 소독이 진행됩니다. 세대 내 소독을 원하시면 미리 문을 열어두시거나 관리자에게 연락 바랍니다.", "2026.09.10");
+  insert.run(1, "9월 관리비 고지서 발송 안내", "2026년 9월분 관리비 고지서가 발송되었습니다. 납부 기한은 9월 25일입니다.", "2026.09.01");
+  insert.run(1, "공용 세탁기 사용 시간 안내", "공용 세탁기는 오전 8시부터 오후 10시까지만 사용 가능합니다.", "2026.08.20");
+  insert.run(2, "행복빌라 주차장 재도색 안내", "9월 15일(화) 지하주차장 바닥 재도색 작업이 진행됩니다. 당일은 인근 공영주차장을 이용해주세요.", "2026.09.08");
 }
 
 if (count("posts") === 0) {
@@ -154,4 +156,7 @@ if (count("fees") === 0) {
   insert.run("201", "2026-09", 600000, 65000, "2026-09-25", "paid", "2026-09-05");
   insert.run("202", "2026-08", 520000, 60000, "2026-08-24", "paid", "2026-08-24");
   insert.run("202", "2026-09", 520000, 60000, "2026-09-25", "overdue", null);
+  // 행복빌라(2번 건물) — 다건물 데모용
+  insert.run("301", "2026-09", 480000, 50000, "2026-09-25", "paid", "2026-09-10");
+  insert.run("302", "2026-09", 490000, 50000, "2026-09-25", "scheduled", null);
 }

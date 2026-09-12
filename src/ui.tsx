@@ -169,6 +169,40 @@ export function Toast({ message, onClose }: { message: string; onClose: () => vo
   );
 }
 
+// ─── 페이지네이션 (목록이 길어질 때 화살표로 페이지 넘기기) ────────────────
+export function Pagination({ page, totalPages, onChange }: { page: number; totalPages: number; onChange: (page: number) => void }) {
+  if (totalPages <= 1) return null;
+  return (
+    <div className="flex items-center justify-center gap-4 pt-1 pb-2 flex-shrink-0">
+      <button
+        onClick={() => onChange(page - 1)}
+        disabled={page <= 1}
+        aria-label="이전 페이지"
+        className="w-9 h-9 rounded-full flex items-center justify-center active:scale-95 transition-all"
+        style={{ background: NAVY, opacity: page <= 1 ? 0.25 : 1 }}
+      >
+        <svg width="16" height="16" viewBox="0 0 18 18">
+          <path d="M11 4L6 9L11 14" stroke="white" strokeWidth="2.2" strokeLinecap="round" />
+        </svg>
+      </button>
+      <span className="text-xs font-bold" style={{ color: NAVY, opacity: 0.6 }}>
+        {page} / {totalPages}
+      </span>
+      <button
+        onClick={() => onChange(page + 1)}
+        disabled={page >= totalPages}
+        aria-label="다음 페이지"
+        className="w-9 h-9 rounded-full flex items-center justify-center active:scale-95 transition-all"
+        style={{ background: NAVY, opacity: page >= totalPages ? 0.25 : 1 }}
+      >
+        <svg width="16" height="16" viewBox="0 0 18 18">
+          <path d="M7 4L12 9L7 14" stroke="white" strokeWidth="2.2" strokeLinecap="round" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
 // ─── 폰 프레임 (앱 전체를 감싸는 셸 — 시작/세입자/집주인 화면 모두 공용) ─────
 export function PhoneShell({ children }: { children: ReactNode }) {
   return (

@@ -42,11 +42,11 @@ export function patchComplaint(
 }
 
 // ─── 공지 ───────────────────────────────────────────────────────────────────
-export function fetchNotices(): Promise<Notice[]> {
-  return request<Notice[]>("/notices");
+export function fetchNotices(buildingId?: number): Promise<Notice[]> {
+  return request<Notice[]>(buildingId ? `/notices?buildingId=${buildingId}` : "/notices");
 }
 
-export function createNotice(payload: { title: string; content: string }): Promise<Notice> {
+export function createNotice(payload: { title: string; content: string; buildingId: number }): Promise<Notice> {
   return request<Notice>("/notices", { method: "POST", body: JSON.stringify(payload) });
 }
 

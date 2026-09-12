@@ -29,7 +29,7 @@ export default function CommunityWriteScreen({ navigate }: { navigate: TenantNav
 
   return (
     <div className="flex flex-col h-full relative" style={{ background: IVORY }}>
-      {showToast && <Toast message="글이 작성되었습니다." onClose={() => navigate("community")} />}
+      {showToast && <Toast message="글이 작성되었습니다." onClose={() => navigate("home")} />}
       <NavHeader
         title="글쓰기"
         onBack={() => navigate("community")}

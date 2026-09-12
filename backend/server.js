@@ -90,7 +90,7 @@ function complaintRow(r) {
 }
 
 function noticeRow(r) {
-  return { id: r.id, title: r.title, content: r.content, date: r.date };
+  return { id: r.id, buildingId: r.building_id, title: r.title, content: r.content, date: r.date };
 }
 
 function feeRow(r) {
@@ -221,16 +221,20 @@ const server = createServer(async (req, res) => {
 
     // ── 공지 ────────────────────────────────────────────────────────────────
     if (method === "GET" && pathname === "/api/notices") {
-      const rows = db.prepare(`SELECT * FROM notices ORDER BY id DESC`).all();
+      const buildingId = url.searchParams.get("buildingId");
+      let rows = db.prepare(`SELECT * FROM notices ORDER BY id DESC`).all();
+      if (buildingId) rows = rows.filter((r) => r.building_id === Number(buildingId));
       return sendJson(res, 200, rows.map(noticeRow));
     }
 
     if (method === "POST" && pathname === "/api/notices") {
       const body = await readBody(req);
-      const { title, content } = body;
-      if (!title?.trim() || !content?.trim()) return sendError(res, 400, "title, content는 필수입니다.");
+      const { title, content, buildingId } = body;
+      if (!title?.trim() || !content?.trim() || !buildingId) return sendError(res, 400, "title, content, buildingId는 필수입니다.");
       const date = todayLabel();
-      const info = db.prepare(`INSERT INTO notices (title, content, date) VALUES (?, ?, ?)`).run(title.trim(), content.trim(), date);
+      const info = db
+        .prepare(`INSERT INTO notices (building_id, title, content, date) VALUES (?, ?, ?, ?)`)
+        .run(Number(buildingId), title.trim(), content.trim(), date);
       const row = db.prepare(`SELECT * FROM notices WHERE id = ?`).get(Number(info.lastInsertRowid));
       return sendJson(res, 201, noticeRow(row));
     }

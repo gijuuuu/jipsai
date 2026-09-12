@@ -2,18 +2,30 @@ import { useState } from "react";
 import { NAVY, IVORY } from "../../theme";
 import { NavHeader, Card, PaidStatusBadge } from "../../ui";
 import { useAppData } from "../../store";
-import { BUILDING, feeTotal } from "../../data";
-import type { LandlordNavigate } from "./types";
+import { getBuilding, feeTotal } from "../../data";
+import type { LandlordNavigate, LandlordScreen } from "./types";
 
-export default function InvoiceDetail({ unitNumber, navigate }: { unitNumber: string; navigate: LandlordNavigate }) {
+export default function InvoiceDetail({
+  unitNumber,
+  buildingId,
+  backTo,
+  navigate,
+}: {
+  unitNumber: string;
+  buildingId: number;
+  backTo: LandlordScreen;
+  navigate: LandlordNavigate;
+}) {
   const { fees, markFeePaid } = useAppData();
+  const building = getBuilding(buildingId);
   const [urged, setUrged] = useState(false);
   const [paying, setPaying] = useState(false);
   const unitFees = fees.filter((f) => f.unitNumber === unitNumber).sort((a, b) => a.yearMonth.localeCompare(b.yearMonth));
   const [idx, setIdx] = useState(unitFees.length - 1);
   const fee = unitFees[idx];
-  const tenant = BUILDING.units.find((u) => u.number === unitNumber)?.tenantName ?? "-";
+  const tenant = building.units.find((u) => u.number === unitNumber)?.tenantName ?? "-";
   const [y, m] = fee.yearMonth.split("-");
+  const goBack = () => (backTo === "settlement" ? navigate("settlement") : navigate("building-detail", { buildingId }));
 
   const handlePay = async () => {
     if (paying) return;
@@ -29,7 +41,7 @@ export default function InvoiceDetail({ unitNumber, navigate }: { unitNumber: st
 
   return (
     <div className="flex flex-col h-full" style={{ background: IVORY }}>
-      <NavHeader title="청구서 상세" onBack={() => navigate("building-detail")} />
+      <NavHeader title="청구서 상세" onBack={goBack} />
       <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <button
@@ -61,7 +73,7 @@ export default function InvoiceDetail({ unitNumber, navigate }: { unitNumber: st
           <div className="flex items-start justify-between mb-3">
             <div>
               <p className="text-xs" style={{ color: NAVY, opacity: 0.5 }}>
-                {BUILDING.name} · {unitNumber}호 · {tenant}
+                {building.name} · {unitNumber}호 · {tenant}
               </p>
               <p className="text-sm font-bold mt-0.5" style={{ color: NAVY }}>
                 {y}년 {m}월 청구서

@@ -1,7 +1,7 @@
 import { NAVY, ORANGE, IVORY } from "../../theme";
 import { NavHeader, Card, PaidStatusBadge } from "../../ui";
 import { useAppData } from "../../store";
-import { BUILDING, feeTotal } from "../../data";
+import { findBuildingByUnit, feeTotal } from "../../data";
 import type { LandlordNavigate } from "./types";
 
 export default function Settlement({ navigate }: { navigate: LandlordNavigate }) {
@@ -40,26 +40,33 @@ export default function Settlement({ navigate }: { navigate: LandlordNavigate })
         </p>
         <div className="flex flex-col gap-2">
           {septFees.map((f) => {
-            const tenant = BUILDING.units.find((u) => u.number === f.unitNumber)?.tenantName ?? "-";
+            const building = findBuildingByUnit(f.unitNumber);
+            const tenant = building.units.find((u) => u.number === f.unitNumber)?.tenantName ?? "-";
             return (
-              <div key={f.unitNumber} className="flex items-center rounded-2xl border-2 bg-white px-4 py-3" style={{ borderColor: "#e8e2d8" }}>
-                <div className="flex-1">
-                  <p className="text-sm font-extrabold" style={{ color: NAVY }}>
-                    {f.unitNumber}호 · {tenant}
-                  </p>
-                  <p className="text-xs mt-0.5" style={{ color: NAVY, opacity: 0.5 }}>
-                    {feeTotal(f).toLocaleString()}원
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {f.paidDate && (
-                    <p className="text-xs" style={{ color: NAVY, opacity: 0.3 }}>
-                      {f.paidDate}
+              <button
+                key={f.unitNumber}
+                onClick={() => navigate("invoice-detail", { unitNumber: f.unitNumber, buildingId: building.id, backTo: "settlement" })}
+                className="w-full text-left active:scale-[0.98] transition-transform"
+              >
+                <div className="flex items-center rounded-2xl border-2 bg-white px-4 py-3" style={{ borderColor: "#e8e2d8" }}>
+                  <div className="flex-1">
+                    <p className="text-sm font-extrabold" style={{ color: NAVY }}>
+                      {building.name} {f.unitNumber}호 · {tenant}
                     </p>
-                  )}
-                  <PaidStatusBadge status={f.status} />
+                    <p className="text-xs mt-0.5" style={{ color: NAVY, opacity: 0.5 }}>
+                      {feeTotal(f).toLocaleString()}원
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {f.paidDate && (
+                      <p className="text-xs" style={{ color: NAVY, opacity: 0.3 }}>
+                        {f.paidDate}
+                      </p>
+                    )}
+                    <PaidStatusBadge status={f.status} />
+                  </div>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>

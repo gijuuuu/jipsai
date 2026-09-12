@@ -10,9 +10,13 @@ export default function TenantHome({ navigate, onExit }: { navigate: TenantNavig
   const [sheet, setSheet] = useState(false);
   const { complaints, notices, freePosts, fees } = useAppData();
 
-  const myComplaintsOpen = complaints.filter((c) => c.unitNumber === CURRENT_TENANT.unitNumber && c.status !== "완료").length;
+  // 알림 배지는 집주인이 접수를 확인(확인중/처리중으로 전환)한 건만 카운트합니다.
+  // 막 접수한 직후(접수됨) 상태는 아직 집주인이 보지 않았을 수 있으므로 제외합니다.
+  const myComplaintsOpen = complaints.filter(
+    (c) => c.unitNumber === CURRENT_TENANT.unitNumber && (c.status === "확인중" || c.status === "처리중")
+  ).length;
   const myFee = fees.find((f) => f.unitNumber === CURRENT_TENANT.unitNumber && f.yearMonth === "2026-09");
-  const latestNotice = notices[0];
+  const latestNotice = notices.filter((n) => n.buildingId === BUILDING.id)[0];
   const latestPost = freePosts[0];
 
   return (
@@ -76,16 +80,16 @@ export default function TenantHome({ navigate, onExit }: { navigate: TenantNavig
         )}
 
         {/* Quick actions */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="relative">
+        <div className="grid grid-cols-3 gap-3 items-stretch">
+          <div className="relative h-full">
             <button
               onClick={() => setSheet(true)}
-              className="w-full flex flex-col items-center justify-center gap-3 rounded-2xl border-2 bg-white active:scale-95 transition-transform"
+              className="w-full h-full flex flex-col items-center justify-center gap-3 rounded-2xl border-2 bg-white active:scale-95 transition-transform"
               style={{ borderColor: NAVY, paddingTop: 22, paddingBottom: 22 }}
             >
               <IconPlane size={32} />
-              <span className="text-xs font-extrabold text-center leading-tight" style={{ color: NAVY }}>
-                불편사항{"\n"}접수
+              <span className="text-xs font-extrabold text-center leading-tight whitespace-pre-line" style={{ color: NAVY }}>
+                {"불편사항\n접수"}
               </span>
             </button>
             {myComplaintsOpen > 0 && (
@@ -96,7 +100,7 @@ export default function TenantHome({ navigate, onExit }: { navigate: TenantNavig
           </div>
           <button
             onClick={() => navigate("community")}
-            className="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 bg-white active:scale-95 transition-transform"
+            className="h-full flex flex-col items-center justify-center gap-3 rounded-2xl border-2 bg-white active:scale-95 transition-transform"
             style={{ borderColor: NAVY, paddingTop: 22, paddingBottom: 22 }}
           >
             <IconChat size={32} />
@@ -106,7 +110,7 @@ export default function TenantHome({ navigate, onExit }: { navigate: TenantNavig
           </button>
           <button
             onClick={() => navigate("fee-detail")}
-            className="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 bg-white active:scale-95 transition-transform"
+            className="h-full flex flex-col items-center justify-center gap-3 rounded-2xl border-2 bg-white active:scale-95 transition-transform"
             style={{ borderColor: NAVY, paddingTop: 22, paddingBottom: 22 }}
           >
             <IconDoc size={32} />

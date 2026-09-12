@@ -41,6 +41,7 @@ export interface Complaint {
 
 export interface Notice {
   id: number;
+  buildingId: number;
   title: string;
   content: string;
   date: string;
@@ -93,18 +94,47 @@ export interface BuildingInfo {
   units: Unit[];
 }
 
-// ─── 건물 · 집주인 · 세입자 (PRD 11장) ──────────────────────────────────────
-export const BUILDING: BuildingInfo = {
-  id: 1,
-  name: "라일락빌라",
-  address: "서울시 관악구 신림로 123",
-  floors: 3,
-  units: [
-    { number: "101", tenantName: "김세입" },
-    { number: "201", tenantName: "이세입" },
-    { number: "202", tenantName: "정세입" },
-  ],
-};
+// ─── 건물 · 집주인 · 세입자 (PRD 11장 + 다건물 데모용 2번째 빌라) ───────────
+// 집주인은 건물을 여러 개 관리할 수 있어야 하므로(공지 관리 시 건물 선택 등),
+// 데모용으로 빌라를 하나 더 추가했습니다. 두 건물의 호실 번호가 겹치지
+// 않도록(101/201/202 vs 301/302) 정했기 때문에, 하자신청·관리비 같은
+// 호실 단위 데이터는 별도 buildingId 없이도 unitNumber만으로 어느 건물
+// 소속인지 구분할 수 있습니다 (findBuildingByUnit 참고). 공지는 호실이 없는
+// 건물 단위 데이터라 buildingId를 따로 저장합니다.
+export const BUILDINGS: BuildingInfo[] = [
+  {
+    id: 1,
+    name: "라일락빌라",
+    address: "서울시 관악구 신림로 123",
+    floors: 3,
+    units: [
+      { number: "101", tenantName: "김세입" },
+      { number: "201", tenantName: "이세입" },
+      { number: "202", tenantName: "정세입" },
+    ],
+  },
+  {
+    id: 2,
+    name: "행복빌라",
+    address: "서울시 관악구 신림로 45",
+    floors: 2,
+    units: [
+      { number: "301", tenantName: "최세입" },
+      { number: "302", tenantName: "강세입" },
+    ],
+  },
+];
+
+// 세입자 화면(TenantHome 등)은 항상 1번 건물(라일락빌라) 기준입니다.
+export const BUILDING: BuildingInfo = BUILDINGS[0];
+
+export function findBuildingByUnit(unitNumber: string): BuildingInfo {
+  return BUILDINGS.find((b) => b.units.some((u) => u.number === unitNumber)) ?? BUILDINGS[0];
+}
+
+export function getBuilding(buildingId: number): BuildingInfo {
+  return BUILDINGS.find((b) => b.id === buildingId) ?? BUILDINGS[0];
+}
 
 export const LANDLORD = { name: "박집주", phone: "010-1111-2222" };
 
@@ -162,9 +192,10 @@ export const INITIAL_COMPLAINTS: Complaint[] = [
 
 // ─── 공지 게시판 시드 데이터 (집주인이 작성 → 세입자 게시판에 노출) ─────────
 export const INITIAL_NOTICES: Notice[] = [
-  { id: 1, title: "9월 정기 소독 안내", date: "2026.09.10", content: "9월 20일(토) 오전 9시부터 건물 전체 정기 소독이 진행됩니다. 세대 내 소독을 원하시면 미리 문을 열어두시거나 관리자에게 연락 바랍니다." },
-  { id: 2, title: "9월 관리비 고지서 발송 안내", date: "2026.09.01", content: "2026년 9월분 관리비 고지서가 발송되었습니다. 납부 기한은 9월 25일입니다." },
-  { id: 3, title: "공용 세탁기 사용 시간 안내", date: "2026.08.20", content: "공용 세탁기는 오전 8시부터 오후 10시까지만 사용 가능합니다." },
+  { id: 1, buildingId: 1, title: "9월 정기 소독 안내", date: "2026.09.10", content: "9월 20일(토) 오전 9시부터 건물 전체 정기 소독이 진행됩니다. 세대 내 소독을 원하시면 미리 문을 열어두시거나 관리자에게 연락 바랍니다." },
+  { id: 2, buildingId: 1, title: "9월 관리비 고지서 발송 안내", date: "2026.09.01", content: "2026년 9월분 관리비 고지서가 발송되었습니다. 납부 기한은 9월 25일입니다." },
+  { id: 3, buildingId: 1, title: "공용 세탁기 사용 시간 안내", date: "2026.08.20", content: "공용 세탁기는 오전 8시부터 오후 10시까지만 사용 가능합니다." },
+  { id: 4, buildingId: 2, title: "행복빌라 주차장 재도색 안내", date: "2026.09.08", content: "9월 15일(화) 지하주차장 바닥 재도색 작업이 진행됩니다. 당일은 인근 공영주차장을 이용해주세요." },
 ];
 
 // ─── 자유 게시판 시드 데이터 (세입자 전용 — 집주인은 작성 불가) ─────────────
@@ -212,6 +243,9 @@ export const INITIAL_FEES: FeeRecord[] = [
   // 202 정세입 — 9월 연체
   { unitNumber: "202", yearMonth: "2026-08", rent: 520000, managementFee: 60000, dueDate: "2026-08-25", status: "paid", paidDate: "2026-08-24" },
   { unitNumber: "202", yearMonth: "2026-09", rent: 520000, managementFee: 60000, dueDate: "2026-09-25", status: "overdue" },
+  // 행복빌라(2번 건물) — 다건물 데모용
+  { unitNumber: "301", yearMonth: "2026-09", rent: 480000, managementFee: 50000, dueDate: "2026-09-25", status: "paid", paidDate: "2026-09-10" },
+  { unitNumber: "302", yearMonth: "2026-09", rent: 490000, managementFee: 50000, dueDate: "2026-09-25", status: "scheduled" },
 ];
 
 export function feeTotal(f: FeeRecord) {

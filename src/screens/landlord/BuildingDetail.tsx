@@ -2,15 +2,16 @@ import { NAVY, IVORY } from "../../theme";
 import { NavHeader, PaidStatusBadge } from "../../ui";
 import { IconReceipt, IconChat } from "../../icons";
 import { useAppData } from "../../store";
-import { BUILDING } from "../../data";
+import { getBuilding } from "../../data";
 import type { LandlordNavigate } from "./types";
 
-export default function BuildingDetail({ navigate }: { navigate: LandlordNavigate }) {
+export default function BuildingDetail({ buildingId, navigate }: { buildingId: number; navigate: LandlordNavigate }) {
   const { complaints, fees } = useAppData();
+  const building = getBuilding(buildingId);
 
   return (
     <div className="flex flex-col h-full" style={{ background: IVORY }}>
-      <NavHeader title={BUILDING.name} subtitle={BUILDING.address} onBack={() => navigate("building-list")} />
+      <NavHeader title={building.name} subtitle={building.address} onBack={() => navigate("building-list")} />
       <div className="flex items-center px-5 pt-3 pb-1">
         <div className="flex-1" />
         <div className="flex gap-2 pr-1">
@@ -23,7 +24,7 @@ export default function BuildingDetail({ navigate }: { navigate: LandlordNavigat
         </div>
       </div>
       <div className="flex-1 overflow-y-auto px-4 py-2 flex flex-col gap-2.5">
-        {BUILDING.units.map((u) => {
+        {building.units.map((u) => {
           const fee = fees.find((f) => f.unitNumber === u.number && f.yearMonth === "2026-09");
           const cnt = complaints.filter((c) => c.unitNumber === u.number && c.status !== "완료").length;
           return (
@@ -41,7 +42,7 @@ export default function BuildingDetail({ navigate }: { navigate: LandlordNavigat
               </div>
               <div className="flex gap-2 flex-shrink-0">
                 <button
-                  onClick={() => navigate("invoice-detail", { unitNumber: u.number })}
+                  onClick={() => navigate("invoice-detail", { unitNumber: u.number, buildingId, backTo: "building-detail" })}
                   className="flex items-center justify-center rounded-xl active:opacity-70"
                   style={{ background: "#eef0fa", width: 52, height: 36 }}
                 >
@@ -49,7 +50,7 @@ export default function BuildingDetail({ navigate }: { navigate: LandlordNavigat
                 </button>
                 <div className="relative">
                   <button
-                    onClick={() => navigate("requests-received", { unitNumber: u.number })}
+                    onClick={() => navigate("requests-received", { unitNumber: u.number, buildingId, backTo: "building-detail" })}
                     className="flex items-center justify-center rounded-xl active:opacity-70"
                     style={{ background: cnt > 0 ? "#fff0d4" : "#eef0fa", width: 52, height: 36 }}
                   >

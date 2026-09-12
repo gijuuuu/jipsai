@@ -1,24 +1,29 @@
+import { useState } from "react";
 import { NAVY, ORANGE, IVORY } from "../../theme";
 import { NavHeader, HouseIllustration } from "../../ui";
 import { IconBuilding, IconMegaphone, IconReceipt, IconChat, IconChevronRight, IconArrowLeft } from "../../icons";
 import { useAppData } from "../../store";
-import { BUILDING, LANDLORD } from "../../data";
+import { BUILDING, LANDLORD, findBuildingByUnit } from "../../data";
 import type { LandlordNavigate } from "./types";
+
+const NOTICE_COLLAPSED_COUNT = 5;
 
 export default function LandlordHome({ navigate, onExit }: { navigate: LandlordNavigate; onExit: () => void }) {
   const { complaints, fees } = useAppData();
+  const [showAllNotifications, setShowAllNotifications] = useState(false);
 
   const septFees = fees.filter((f) => f.yearMonth === "2026-09");
   const unpaidCount = septFees.filter((f) => f.status !== "paid").length;
   const pendingComplaints = complaints.filter((c) => c.status !== "완료").length;
   // 아직 확인하지 않은(=방금 접수된) 하자신청 — 홈 화면 알림으로 노출
   const newComplaints = complaints.filter((c) => c.status === "접수됨");
+  const visibleNotifications = showAllNotifications ? newComplaints : newComplaints.slice(0, NOTICE_COLLAPSED_COUNT);
 
   const menus = [
-    { icon: <IconMegaphone size={28} />, label: "공지 관리", sub: "세입자 전체에게 공지 작성", s: "notice-manage" as const },
+    { icon: <IconMegaphone size={28} />, label: "공지 관리", sub: "세입자 전체에게 공지 작성", s: "notice-building-select" as const },
     { icon: <IconBuilding size={28} />, label: "내 건물 관리", sub: "호실별 현황 확인", s: "building-list" as const },
     { icon: <IconReceipt size={28} />, label: "청구 · 정산", sub: "납입 현황 및 정산 요약", s: "settlement" as const },
-    { icon: <IconChat size={28} />, label: "게시판 보기", sub: "공지 · 자유 게시판", s: "notice-manage" as const },
+    { icon: <IconChat size={28} />, label: "게시판 보기", sub: "공지 · 자유 게시판", s: "notice-building-select" as const },
   ];
 
   return (
@@ -57,10 +62,10 @@ export default function LandlordHome({ navigate, onExit }: { navigate: LandlordN
               </span>
             </div>
             <div className="bg-white divide-y" style={{ borderColor: "#f0ebe3" }}>
-              {newComplaints.map((c) => (
+              {visibleNotifications.map((c) => (
                 <button
                   key={c.id}
-                  onClick={() => navigate("requests-received", { unitNumber: c.unitNumber })}
+                  onClick={() => navigate("requests-received", { unitNumber: c.unitNumber, buildingId: findBuildingByUnit(c.unitNumber).id, backTo: "home" })}
                   className="w-full flex items-center gap-2.5 px-4 py-3 text-left active:scale-[0.98] transition-transform"
                 >
                   <span style={{ fontSize: 18 }}>{c.emoji}</span>
@@ -76,6 +81,15 @@ export default function LandlordHome({ navigate, onExit }: { navigate: LandlordN
                 </button>
               ))}
             </div>
+            {newComplaints.length > NOTICE_COLLAPSED_COUNT && (
+              <button
+                onClick={() => setShowAllNotifications((v) => !v)}
+                className="w-full text-center py-2.5 text-xs font-extrabold active:opacity-70"
+                style={{ background: "#fdf6e8", color: "#8a6a30" }}
+              >
+                {showAllNotifications ? "접기 ▲" : `더보기 (${newComplaints.length - NOTICE_COLLAPSED_COUNT}건 더) ▼`}
+              </button>
+            )}
           </div>
         )}
 

@@ -4,7 +4,17 @@ import { NavHeader, Card, StatusBadge } from "../../ui";
 import { useAppData } from "../../store";
 import type { LandlordNavigate } from "./types";
 
-export default function RequestLogDetail({ unitNumber, complaintId, navigate }: { unitNumber: string; complaintId: number; navigate: LandlordNavigate }) {
+export default function RequestLogDetail({
+  unitNumber,
+  buildingId,
+  complaintId,
+  navigate,
+}: {
+  unitNumber: string;
+  buildingId: number;
+  complaintId: number;
+  navigate: LandlordNavigate;
+}) {
   const { complaints, updateComplaintStatus } = useAppData();
   const req = complaints.find((c) => c.id === complaintId);
   const [updating, setUpdating] = useState(false);
@@ -24,7 +34,7 @@ export default function RequestLogDetail({ unitNumber, complaintId, navigate }: 
   if (!req) {
     return (
       <div className="flex flex-col h-full" style={{ background: IVORY }}>
-        <NavHeader title="접수 내역" onBack={() => navigate("request-log", { unitNumber })} />
+        <NavHeader title="접수 내역" onBack={() => navigate("request-log", { unitNumber, buildingId })} />
         <div className="flex-1 flex items-center justify-center">
           <span className="text-sm font-medium" style={{ color: NAVY, opacity: 0.4 }}>
             해당 요청을 찾을 수 없습니다.
@@ -36,7 +46,7 @@ export default function RequestLogDetail({ unitNumber, complaintId, navigate }: 
 
   return (
     <div className="flex flex-col h-full" style={{ background: IVORY }}>
-      <NavHeader title={`${req.category} > ${req.subcategory}`} onBack={() => navigate("request-log", { unitNumber })} />
+      <NavHeader title={`${req.category} > ${req.subcategory}`} onBack={() => navigate("request-log", { unitNumber, buildingId })} />
       <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
         <Card className="px-4 py-3 flex items-center justify-between">
           <p className="text-sm font-bold" style={{ color: NAVY }}>

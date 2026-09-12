@@ -1,5 +1,6 @@
 import { useState } from "react";
 import LandlordHome from "./Home";
+import NoticeBuildingSelect from "./NoticeBuildingSelect";
 import NoticeManageScreen from "./NoticeManage";
 import NoticeWriteScreen from "./NoticeWrite";
 import BuildingList from "./BuildingList";
@@ -21,34 +22,40 @@ export default function LandlordFlow({ onExit }: { onExit: () => void }) {
     if (e !== undefined) setExtra((prev) => ({ ...prev, ...e }));
   };
 
+  const buildingId = extra.buildingId ?? 1;
+  const unitNumber = extra.unitNumber ?? "101";
+  const backTo = extra.backTo ?? "building-detail";
+
   switch (screen) {
     case "home":
       return <LandlordHome navigate={navigate} onExit={onExit} />;
+    case "notice-building-select":
+      return <NoticeBuildingSelect navigate={navigate} />;
     case "notice-manage":
-      return <NoticeManageScreen navigate={navigate} />;
+      return <NoticeManageScreen buildingId={buildingId} navigate={navigate} />;
     case "notice-write":
-      return <NoticeWriteScreen navigate={navigate} />;
+      return <NoticeWriteScreen buildingId={buildingId} navigate={navigate} />;
     case "building-list":
       return <BuildingList navigate={navigate} />;
     case "building-detail":
-      return <BuildingDetail navigate={navigate} />;
+      return <BuildingDetail buildingId={buildingId} navigate={navigate} />;
     case "invoice-detail":
-      return <InvoiceDetail unitNumber={extra.unitNumber ?? "101"} navigate={navigate} />;
+      return <InvoiceDetail unitNumber={unitNumber} buildingId={buildingId} backTo={backTo} navigate={navigate} />;
     case "requests-received":
-      return <RequestsReceived unitNumber={extra.unitNumber ?? "101"} navigate={navigate} />;
+      return <RequestsReceived unitNumber={unitNumber} buildingId={buildingId} backTo={backTo} navigate={navigate} />;
     case "meeting-scheduler":
       return typeof extra.complaintId === "number" ? (
-        <MeetingScheduler unitNumber={extra.unitNumber ?? "101"} complaintId={extra.complaintId} navigate={navigate} />
+        <MeetingScheduler unitNumber={unitNumber} buildingId={buildingId} complaintId={extra.complaintId} navigate={navigate} />
       ) : (
-        <RequestsReceived unitNumber={extra.unitNumber ?? "101"} navigate={navigate} />
+        <RequestsReceived unitNumber={unitNumber} buildingId={buildingId} backTo={backTo} navigate={navigate} />
       );
     case "request-log":
-      return <RequestLog unitNumber={extra.unitNumber ?? "101"} navigate={navigate} />;
+      return <RequestLog unitNumber={unitNumber} buildingId={buildingId} navigate={navigate} />;
     case "request-log-detail":
       return typeof extra.complaintId === "number" ? (
-        <RequestLogDetail unitNumber={extra.unitNumber ?? "101"} complaintId={extra.complaintId} navigate={navigate} />
+        <RequestLogDetail unitNumber={unitNumber} buildingId={buildingId} complaintId={extra.complaintId} navigate={navigate} />
       ) : (
-        <RequestLog unitNumber={extra.unitNumber ?? "101"} navigate={navigate} />
+        <RequestLog unitNumber={unitNumber} buildingId={buildingId} navigate={navigate} />
       );
     case "settlement":
       return <Settlement navigate={navigate} />;

@@ -20,7 +20,7 @@ interface AppData {
   updateComplaintStatus: (id: number, status: ComplaintStatus, memo?: string, actor?: "tenant" | "landlord") => Promise<void>;
 
   notices: Notice[];
-  addNotice: (n: { title: string; content: string }) => Promise<Notice>;
+  addNotice: (n: { title: string; content: string; buildingId: number }) => Promise<Notice>;
 
   freePosts: FreePost[];
   addFreePost: (p: { title: string; body: string; isAnonymous: boolean; unitNumber: string }) => Promise<FreePost>;

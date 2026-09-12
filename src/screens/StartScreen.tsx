@@ -15,7 +15,7 @@ export default function StartScreen({ onSelect }: { onSelect: (role: "landlord" 
       {/* App name */}
       <div className="px-6 pt-5 pb-6 text-center flex-shrink-0" style={{ background: "#f5f0e8" }}>
         <h1 className="text-[26px] font-black tracking-tight" style={{ color: NAVY }}>
-          집계부
+          집사이
         </h1>
         <p className="text-sm mt-1.5" style={{ color: NAVY, opacity: 0.45 }}>
           청구 · 독촉 · 유지보수를 감정 소모 없이
@@ -67,7 +67,7 @@ export default function StartScreen({ onSelect }: { onSelect: (role: "landlord" 
 
       <div className="py-6 text-center bg-white flex-shrink-0">
         <p className="text-xs" style={{ color: NAVY, opacity: 0.25 }}>
-          집계부 v1.0 · 2026
+          집사이 v1.0 · 2026
         </p>
       </div>
     </div>
