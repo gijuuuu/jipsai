@@ -6,7 +6,7 @@
 import type { Complaint, ComplaintCategory, ComplaintStatus, Notice, FreePost, PostComment, FeeRecord, FeeStatus } from "./data";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`/api${path}`, {
+  const res = await fetch(`https://jipsai-backend.onrender.com/api${path}`, {
     headers: { "Content-Type": "application/json" },
     ...options,
   });
