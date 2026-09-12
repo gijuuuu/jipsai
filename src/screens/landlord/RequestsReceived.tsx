@@ -56,38 +56,42 @@ export default function RequestsReceived({
           pageItems.map((req) => {
             const accepted = req.status !== "접수됨";
             return (
-              <Card key={req.id} className="overflow-hidden">
-                <div className="px-4 py-4">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <p className="text-sm font-extrabold" style={{ color: NAVY }}>
-                      {req.category} &gt; {req.subcategory}
+              <button
+                key={req.id}
+                onClick={() => navigate(accepted ? "request-log-detail" : "meeting-scheduler", { unitNumber, buildingId, complaintId: req.id })}
+                className="w-full text-left active:scale-[0.98] transition-transform"
+              >
+                <Card className="overflow-hidden">
+                  <div className="px-4 py-4">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <p className="text-sm font-extrabold" style={{ color: NAVY }}>
+                        {req.category} &gt; {req.subcategory}
+                      </p>
+                      <StatusBadge status={req.status} />
+                    </div>
+                    <p className="text-xs leading-relaxed" style={{ color: NAVY, opacity: 0.65 }}>
+                      {req.description}
                     </p>
-                    <StatusBadge status={req.status} />
+                    <p className="text-xs mt-2" style={{ color: NAVY, opacity: 0.35 }}>
+                      {req.createdAt}
+                    </p>
                   </div>
-                  <p className="text-xs leading-relaxed" style={{ color: NAVY, opacity: 0.65 }}>
-                    {req.description}
-                  </p>
-                  <p className="text-xs mt-2" style={{ color: NAVY, opacity: 0.35 }}>
-                    {req.createdAt}
-                  </p>
-                </div>
-                <div className="mx-4 mb-4 h-24 rounded-xl flex items-center justify-center" style={{ background: "#f5f2ee" }}>
-                  <div className="text-center" style={{ color: NAVY, opacity: 0.3 }}>
-                    <IconTool size={22} />
-                    <p className="text-[10px] mt-1">첨부 이미지</p>
+                  <div className="mx-4 mb-4 h-24 rounded-xl flex items-center justify-center" style={{ background: "#f5f2ee" }}>
+                    <div className="text-center" style={{ color: NAVY, opacity: 0.3 }}>
+                      <IconTool size={22} />
+                      <p className="text-[10px] mt-1">첨부 이미지</p>
+                    </div>
                   </div>
-                </div>
-                <div className="px-4 pb-4">
-                  <button
-                    onClick={() => !accepted && navigate("meeting-scheduler", { unitNumber, complaintId: req.id })}
-                    disabled={accepted}
-                    className="w-full py-3 rounded-xl text-sm font-extrabold active:scale-95 transition-transform"
-                    style={{ background: accepted ? "#ede8df" : NAVY, color: accepted ? "#a8a29a" : "#fff" }}
-                  >
-                    {accepted ? "접수 완료 — 일정 확정됨" : "접수하기"}
-                  </button>
-                </div>
-              </Card>
+                  <div className="px-4 pb-4">
+                    <div
+                      className="w-full py-3 rounded-xl text-sm font-extrabold text-center"
+                      style={{ background: accepted ? "#ede8df" : NAVY, color: accepted ? "#a8a29a" : "#fff" }}
+                    >
+                      {accepted ? "접수 완료 — 눌러서 일정 확인" : "눌러서 접수 일정 확인하기"}
+                    </div>
+                  </div>
+                </Card>
+              </button>
             );
           })
         )}

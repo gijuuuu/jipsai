@@ -11,6 +11,7 @@ export default function ComplaintFormScreen({ category, subcategory, navigate }:
   const [content, setContent] = useState("");
   const [selected, setSelected] = useState<number[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const yr = 2026,
     mo = 8; // 2026년 9월 (0-indexed)
@@ -23,7 +24,7 @@ export default function ComplaintFormScreen({ category, subcategory, navigate }:
   const emoji = CATEGORIES.find((c) => c.label === category)?.emoji ?? "📝";
 
   const submit = async () => {
-    if (submitting) return;
+    if (submitting || submitted) return;
     setSubmitting(true);
     try {
       await addComplaint({
@@ -35,6 +36,7 @@ export default function ComplaintFormScreen({ category, subcategory, navigate }:
         description: content.trim() || "(상세 내용 없음)",
         visitDays: selected,
       });
+      setSubmitted(true);
       setShowToast(true);
     } catch (err) {
       alert(err instanceof Error ? err.message : "접수에 실패했습니다. 잠시 후 다시 시도해주세요.");
@@ -132,11 +134,11 @@ export default function ComplaintFormScreen({ category, subcategory, navigate }:
       <div className="px-4 py-4 flex-shrink-0 border-t" style={{ background: IVORY, borderColor: "#eee" }}>
         <button
           onClick={submit}
-          disabled={submitting}
+          disabled={submitting || submitted}
           className="w-full py-4 rounded-2xl font-extrabold text-base active:scale-95 transition-transform"
-          style={{ background: ORANGE, color: NAVY, opacity: submitting ? 0.6 : 1 }}
+          style={{ background: ORANGE, color: NAVY, opacity: submitting || submitted ? 0.6 : 1 }}
         >
-          {submitting ? "접수 중..." : "접수하기"}
+          {submitting ? "접수 중..." : submitted ? "접수 완료" : "접수하기"}
         </button>
       </div>
     </div>
