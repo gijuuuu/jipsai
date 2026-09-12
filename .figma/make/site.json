@@ -1,0 +1,10 @@
+{
+  "description": "A tenant-focused community app enabling easy rent management, maintenance issue reporting, and neighborhood communication for villa residents.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
