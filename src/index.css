@@ -26,5 +26,10 @@ body {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
+@keyframes toastDrop {
+  from { transform: translateY(-16px); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
 .slide-up { animation: slideUp 0.28s cubic-bezier(0.32,0.72,0,1) both; }
 .fade-in  { animation: fadeIn  0.18s ease both; }
+.toast-drop { animation: toastDrop 0.22s cubic-bezier(0.32,0.72,0,1) both; }

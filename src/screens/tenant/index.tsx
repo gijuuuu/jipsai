@@ -27,7 +27,7 @@ export default function TenantFlow({ onExit }: { onExit: () => void }) {
     case "complaint-history":
       return <ComplaintHistoryScreen navigate={navigate} />;
     case "complaint-history-detail":
-      return extra.item ? <ComplaintHistoryDetailScreen item={extra.item} navigate={navigate} /> : <ComplaintHistoryScreen navigate={navigate} />;
+      return typeof extra.itemId === "number" ? <ComplaintHistoryDetailScreen itemId={extra.itemId} navigate={navigate} /> : <ComplaintHistoryScreen navigate={navigate} />;
     case "complaint-category":
       return <ComplaintCategoryScreen navigate={navigate} />;
     case "complaint-subcategory":

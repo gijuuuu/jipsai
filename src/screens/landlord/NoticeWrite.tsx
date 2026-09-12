@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NAVY, ORANGE, IVORY } from "../../theme";
-import { NavHeader } from "../../ui";
+import { NavHeader, Toast } from "../../ui";
 import { IconCamera } from "../../icons";
 import { useAppData } from "../../store";
 import type { LandlordNavigate } from "./types";
@@ -9,21 +9,31 @@ export default function NoticeWriteScreen({ navigate }: { navigate: LandlordNavi
   const { addNotice } = useAppData();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
-  const submit = () => {
-    if (!title.trim() || !content.trim()) return;
-    addNotice({ title: title.trim(), content: content.trim() });
-    navigate("notice-manage");
+  const submit = async () => {
+    if (!title.trim() || !content.trim() || submitting) return;
+    setSubmitting(true);
+    try {
+      await addNotice({ title: title.trim(), content: content.trim() });
+      setShowToast(true);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "등록에 실패했습니다. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
-    <div className="flex flex-col h-full" style={{ background: IVORY }}>
+    <div className="flex flex-col h-full relative" style={{ background: IVORY }}>
+      {showToast && <Toast message="공지가 등록되었습니다." onClose={() => navigate("notice-manage")} />}
       <NavHeader
         title="공지 작성"
         onBack={() => navigate("notice-manage")}
         rightEl={
-          <button onClick={submit} className="ml-auto text-sm font-extrabold px-1 active:scale-95 flex-shrink-0" style={{ color: ORANGE }}>
-            등록
+          <button onClick={submit} disabled={submitting} className="ml-auto text-sm font-extrabold px-1 active:scale-95 flex-shrink-0" style={{ color: ORANGE, opacity: submitting ? 0.5 : 1 }}>
+            {submitting ? "등록 중..." : "등록"}
           </button>
         }
       />

@@ -1,11 +1,25 @@
+import { useState } from "react";
 import { NAVY, ORANGE, IVORY } from "../../theme";
 import { NavHeader, Card, StatusBadge } from "../../ui";
 import { useAppData } from "../../store";
 import type { LandlordNavigate } from "./types";
 
 export default function RequestLogDetail({ unitNumber, complaintId, navigate }: { unitNumber: string; complaintId: number; navigate: LandlordNavigate }) {
-  const { complaints } = useAppData();
+  const { complaints, updateComplaintStatus } = useAppData();
   const req = complaints.find((c) => c.id === complaintId);
+  const [updating, setUpdating] = useState(false);
+
+  const advanceToProcessing = async () => {
+    if (updating) return;
+    setUpdating(true);
+    try {
+      await updateComplaintStatus(complaintId, "처리중", req?.memo ?? undefined, "landlord");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "처리에 실패했습니다.");
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   if (!req) {
     return (
@@ -81,6 +95,32 @@ export default function RequestLogDetail({ unitNumber, complaintId, navigate }: 
           </Card>
         )}
       </div>
+      {req.status === "확인중" && (
+        <div className="px-4 pb-8 pt-3 bg-white" style={{ borderTop: "1px solid #e8e2d8" }}>
+          <button
+            onClick={advanceToProcessing}
+            disabled={updating}
+            className="w-full font-extrabold rounded-2xl py-4 text-sm active:scale-95 transition-transform"
+            style={{ background: NAVY, color: "#fff", opacity: updating ? 0.6 : 1 }}
+          >
+            {updating ? "변경 중..." : "처리중으로 상태 변경"}
+          </button>
+        </div>
+      )}
+      {req.status === "처리중" && (
+        <div className="px-4 pb-8 pt-3 bg-white" style={{ borderTop: "1px solid #e8e2d8" }}>
+          <div className="rounded-xl py-3.5 text-center" style={{ background: "#fff0d4" }}>
+            <p className="text-sm font-bold" style={{ color: "#8a6a30" }}>세입자의 처리 완료 확인을 기다리는 중입니다</p>
+          </div>
+        </div>
+      )}
+      {req.status === "완료" && (
+        <div className="px-4 pb-8 pt-3 bg-white" style={{ borderTop: "1px solid #e8e2d8" }}>
+          <div className="rounded-xl py-3.5 text-center" style={{ background: "#e8f8ee" }}>
+            <p className="text-sm font-bold" style={{ color: "#1f9e52" }}>처리 완료 ✓</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

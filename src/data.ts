@@ -55,11 +55,14 @@ export interface PostComment {
 
 export interface FreePost {
   id: number;
-  author: string; // "201호" 형태
+  author: string; // 익명이면 "익명", 아니면 "201호" 형태
+  isAnonymous: boolean;
+  unitNumber: string; // 작성자의 실제 호실 (익명이어도 서버에는 보관 — 화면에는 노출 안 함)
   title: string;
   body: string;
   date: string;
   likes: number;
+  likedByMe?: boolean; // 현재 세입자가 하트를 눌렀는지 (백엔드에서 계산해 내려줌)
   hasPhoto: boolean;
   comments: PostComment[];
 }
@@ -67,6 +70,7 @@ export interface FreePost {
 export type FeeStatus = "paid" | "scheduled" | "overdue";
 
 export interface FeeRecord {
+  id?: number;
   unitNumber: string;
   yearMonth: string; // "2026-09"
   rent: number;
@@ -107,6 +111,8 @@ export const LANDLORD = { name: "박집주", phone: "010-1111-2222" };
 // 로그인이 없는 해커톤 버전이라, 세입자 화면은 시드 세입자 중 한 명(101호 김세입)의
 // 시점으로 고정되어 있습니다. (백엔드 하드코딩된 t1과 동일)
 export const CURRENT_TENANT = { name: "김세입", unitNumber: "101" };
+export const CURRENT_TENANT_ID = "t1";
+export const LANDLORD_ID = "l1";
 
 // ─── 하자신청 시드 데이터 ────────────────────────────────────────────────────
 export const INITIAL_COMPLAINTS: Complaint[] = [
@@ -166,6 +172,8 @@ export const INITIAL_FREE_POSTS: FreePost[] = [
   {
     id: 1,
     author: "201호",
+    isAnonymous: false,
+    unitNumber: "201",
     title: "벌레 잡아주실 분 ㅠㅠ 사례합니다!",
     date: "2026.09.11",
     body: "얼마 전부터 방에 바퀴벌레 같은 벌레가 한 마리씩 나오고 있어요. 혹시 도와주실 수 있으신 분 계신가요? 사례는 꼭 하겠습니다!",
@@ -180,6 +188,8 @@ export const INITIAL_FREE_POSTS: FreePost[] = [
   {
     id: 2,
     author: "202호",
+    isAnonymous: false,
+    unitNumber: "202",
     title: "택배 문 앞에 두셔도 돼요~ 낮에 집에 있어요",
     date: "2026.09.10",
     body: "낮 시간에 주로 집에 있으니까 택배기사님이나 이웃분들이 문 앞에 두셔도 됩니다!",

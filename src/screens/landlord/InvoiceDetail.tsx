@@ -6,13 +6,26 @@ import { BUILDING, feeTotal } from "../../data";
 import type { LandlordNavigate } from "./types";
 
 export default function InvoiceDetail({ unitNumber, navigate }: { unitNumber: string; navigate: LandlordNavigate }) {
-  const { fees } = useAppData();
+  const { fees, markFeePaid } = useAppData();
   const [urged, setUrged] = useState(false);
+  const [paying, setPaying] = useState(false);
   const unitFees = fees.filter((f) => f.unitNumber === unitNumber).sort((a, b) => a.yearMonth.localeCompare(b.yearMonth));
   const [idx, setIdx] = useState(unitFees.length - 1);
   const fee = unitFees[idx];
   const tenant = BUILDING.units.find((u) => u.number === unitNumber)?.tenantName ?? "-";
   const [y, m] = fee.yearMonth.split("-");
+
+  const handlePay = async () => {
+    if (paying) return;
+    setPaying(true);
+    try {
+      await markFeePaid(unitNumber, fee.yearMonth);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "처리에 실패했습니다.");
+    } finally {
+      setPaying(false);
+    }
+  };
 
   return (
     <div className="flex flex-col h-full" style={{ background: IVORY }}>
@@ -112,7 +125,15 @@ export default function InvoiceDetail({ unitNumber, navigate }: { unitNumber: st
       </div>
 
       {fee.status !== "paid" && (
-        <div className="px-4 pb-8 pt-3 bg-white" style={{ borderTop: "1px solid #e8e2d8" }}>
+        <div className="px-4 pb-8 pt-3 bg-white flex flex-col gap-2" style={{ borderTop: "1px solid #e8e2d8" }}>
+          <button
+            onClick={handlePay}
+            disabled={paying}
+            className="w-full font-extrabold rounded-2xl py-4 text-sm active:scale-95 transition-transform"
+            style={{ background: NAVY, color: "#fff", opacity: paying ? 0.6 : 1 }}
+          >
+            {paying ? "처리 중..." : "납부 완료 처리"}
+          </button>
           {urged ? (
             <div className="rounded-xl py-3.5 text-center" style={{ background: "#fff0d4" }}>
               <p className="text-sm font-bold" style={{ color: "#8a6a30" }}>독촉 알림이 발송되었습니다 ✓</p>

@@ -18,12 +18,20 @@ export default function MeetingScheduler({ unitNumber, complaintId, navigate }: 
   const [selectedDay, setSelectedDay] = useState<number | null>(complaint?.visitDays[0] ?? null);
   const [message, setMessage] = useState("");
   const [confirmed, setConfirmed] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleConfirm = () => {
-    if (!selectedDay || !message.trim()) return;
-    updateComplaintStatus(complaintId, "확인중", message.trim());
-    setConfirmed(true);
-    setTimeout(() => navigate("request-log", { unitNumber }), 1200);
+  const handleConfirm = async () => {
+    if (!selectedDay || !message.trim() || submitting) return;
+    setSubmitting(true);
+    try {
+      await updateComplaintStatus(complaintId, "확인중", message.trim(), "landlord");
+      setConfirmed(true);
+      setTimeout(() => navigate("request-log", { unitNumber }), 1200);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "처리에 실패했습니다.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -125,9 +133,9 @@ export default function MeetingScheduler({ unitNumber, complaintId, navigate }: 
         ) : (
           <button
             onClick={handleConfirm}
-            disabled={!selectedDay || !message.trim()}
+            disabled={!selectedDay || !message.trim() || submitting}
             className="w-full font-extrabold rounded-2xl py-4 text-sm active:scale-95 transition-transform"
-            style={{ background: selectedDay && message.trim() ? NAVY : "#ede8df", color: selectedDay && message.trim() ? "#fff" : "#a8a29a" }}
+            style={{ background: selectedDay && message.trim() ? NAVY : "#ede8df", color: selectedDay && message.trim() ? "#fff" : "#a8a29a", opacity: submitting ? 0.6 : 1 }}
           >
             {selectedDay ? `9월 ${selectedDay}일로 확정하기` : "날짜를 선택하세요"}
           </button>
