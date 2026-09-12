@@ -12,13 +12,15 @@ export default function CommunityWriteScreen({ navigate }: { navigate: TenantNav
   const [body, setBody] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(true); // 기본값: 익명
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
   const submit = async () => {
-    if (!title.trim() || !body.trim() || submitting) return;
+    if (!title.trim() || !body.trim() || submitting || submitted) return;
     setSubmitting(true);
     try {
       await addFreePost({ title: title.trim(), body: body.trim(), isAnonymous, unitNumber: CURRENT_TENANT.unitNumber });
+      setSubmitted(true);
       setShowToast(true);
     } catch (err) {
       alert(err instanceof Error ? err.message : "등록에 실패했습니다. 잠시 후 다시 시도해주세요.");
@@ -34,8 +36,13 @@ export default function CommunityWriteScreen({ navigate }: { navigate: TenantNav
         title="글쓰기"
         onBack={() => navigate("community")}
         rightEl={
-          <button onClick={submit} disabled={submitting} className="ml-auto text-sm font-extrabold px-1 active:scale-95 flex-shrink-0" style={{ color: ORANGE, opacity: submitting ? 0.5 : 1 }}>
-            {submitting ? "등록 중..." : "등록"}
+          <button
+            onClick={submit}
+            disabled={submitting || submitted}
+            className="ml-auto text-sm font-extrabold px-1 active:scale-95 flex-shrink-0"
+            style={{ color: ORANGE, opacity: submitting || submitted ? 0.5 : 1 }}
+          >
+            {submitting ? "등록 중..." : submitted ? "등록 완료" : "등록"}
           </button>
         }
       />
