@@ -80,6 +80,7 @@ export default function CommunityScreen({ navigate }: { navigate: TenantNavigate
                 <div className="flex items-center gap-3 text-xs" style={{ color: NAVY, opacity: 0.42 }}>
                   <span>💬 {p.comments.length}</span>
                   <span>❤️ {p.likes}</span>
+                  {p.photos.length > 0 && <span>📷 {p.photos.length}</span>}
                 </div>
               </button>
             ))}

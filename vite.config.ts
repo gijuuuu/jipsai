@@ -39,10 +39,15 @@ export default defineConfig(({ mode }) => {
 ],
       },
       // 백엔드(backend/server.js, 기본 4000번 포트)로 /api 요청을 프록시합니다.
+      // /uploads는 첨부 사진(업로드된 실제 파일)을 백엔드에서 그대로 내려주는 정적 경로입니다.
       // 터미널 1: npm run server (http://localhost:4000)
       // 터미널 2: npm run dev
       proxy: {
         '/api': {
+          target: `http://localhost:${process.env.API_PORT || 4000}`,
+          changeOrigin: true,
+        },
+        '/uploads': {
           target: `http://localhost:${process.env.API_PORT || 4000}`,
           changeOrigin: true,
         },

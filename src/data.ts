@@ -37,6 +37,7 @@ export interface Complaint {
   status: ComplaintStatus;
   memo: string | null; // 집주인 처리 메모 / 답변
   timeline: string[];
+  photos: string[]; // 첨부 사진 URL 목록 (예: "/uploads/xxx.jpg")
 }
 
 export interface Notice {
@@ -65,6 +66,7 @@ export interface FreePost {
   likes: number;
   likedByMe?: boolean; // 현재 세입자가 하트를 눌렀는지 (백엔드에서 계산해 내려줌)
   hasPhoto: boolean;
+  photos: string[]; // 첨부 사진 URL 목록 (예: "/uploads/xxx.jpg")
   comments: PostComment[];
 }
 
@@ -159,6 +161,7 @@ export const INITIAL_COMPLAINTS: Complaint[] = [
     status: "처리중",
     memo: "확인했습니다. 다음 주 월요일 오전에 방문하겠습니다.",
     timeline: ["2026.09.02 접수됨", "2026.09.03 확인중", "2026.09.05 처리중"],
+    photos: [],
   },
   {
     id: 2,
@@ -173,6 +176,7 @@ export const INITIAL_COMPLAINTS: Complaint[] = [
     status: "완료",
     memo: "수리 완료되었습니다. 불편 드려서 죄송합니다.",
     timeline: ["2026.08.25 접수됨", "2026.08.26 확인중", "2026.08.27 처리중", "2026.08.28 완료"],
+    photos: [],
   },
   {
     id: 3,
@@ -187,6 +191,7 @@ export const INITIAL_COMPLAINTS: Complaint[] = [
     status: "접수됨",
     memo: null,
     timeline: ["2026.09.11 접수됨"],
+    photos: [],
   },
 ];
 
@@ -215,6 +220,7 @@ export const INITIAL_FREE_POSTS: FreePost[] = [
     ],
     likes: 3,
     hasPhoto: false,
+    photos: [],
   },
   {
     id: 2,
@@ -227,6 +233,7 @@ export const INITIAL_FREE_POSTS: FreePost[] = [
     comments: [{ id: 1, author: "101호", text: "감사합니다~!", time: "14:00" }],
     likes: 7,
     hasPhoto: false,
+    photos: [],
   },
 ];
 

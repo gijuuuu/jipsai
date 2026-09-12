@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { NAVY, ORANGE, IVORY } from "../../theme";
-import { NavHeader, Toast } from "../../ui";
-import { IconCamera } from "../../icons";
+import { NavHeader, Toast, PhotoPicker } from "../../ui";
 import { useAppData } from "../../store";
 import { CATEGORIES, CURRENT_TENANT, type ComplaintCategory } from "../../data";
 import type { TenantNavigate } from "./types";
@@ -10,6 +9,7 @@ export default function ComplaintFormScreen({ category, subcategory, navigate }:
   const { addComplaint } = useAppData();
   const [content, setContent] = useState("");
   const [selected, setSelected] = useState<number[]>([]);
+  const [photos, setPhotos] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -35,6 +35,7 @@ export default function ComplaintFormScreen({ category, subcategory, navigate }:
         emoji,
         description: content.trim() || "(상세 내용 없음)",
         visitDays: selected,
+        photos,
       });
       setSubmitted(true);
       setShowToast(true);
@@ -69,18 +70,7 @@ export default function ComplaintFormScreen({ category, subcategory, navigate }:
           <div className="text-xs font-extrabold mb-3 opacity-60" style={{ color: NAVY }}>
             사진 첨부
           </div>
-          <div className="flex gap-3">
-            <button
-              className="flex flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed active:scale-95 transition-transform"
-              style={{ width: 72, height: 72, borderColor: NAVY, opacity: 0.5 }}
-            >
-              <IconCamera size={26} />
-              <span style={{ fontSize: 10, fontWeight: 600, color: NAVY }}>사진 추가</span>
-            </button>
-            <button className="rounded-xl border-2 border-dashed flex items-center justify-center" style={{ width: 72, height: 72, borderColor: "#ddd", color: "#ccc", fontSize: 22 }}>
-              ＋
-            </button>
-          </div>
+          <PhotoPicker photos={photos} onChange={setPhotos} />
         </div>
         {/* Calendar */}
         <div className="rounded-2xl border-2 bg-white px-4 py-4" style={{ borderColor: NAVY }}>

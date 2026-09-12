@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { NAVY, ORANGE, IVORY } from "../../theme";
-import { NavHeader, Toast } from "../../ui";
-import { IconCamera } from "../../icons";
+import { NavHeader, Toast, PhotoPicker } from "../../ui";
 import { useAppData } from "../../store";
 import { CURRENT_TENANT } from "../../data";
 import type { TenantNavigate } from "./types";
@@ -10,6 +9,7 @@ export default function CommunityWriteScreen({ navigate }: { navigate: TenantNav
   const { addFreePost } = useAppData();
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [photos, setPhotos] = useState<string[]>([]);
   const [isAnonymous, setIsAnonymous] = useState(true); // 기본값: 익명
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -19,7 +19,7 @@ export default function CommunityWriteScreen({ navigate }: { navigate: TenantNav
     if (!title.trim() || !body.trim() || submitting || submitted) return;
     setSubmitting(true);
     try {
-      await addFreePost({ title: title.trim(), body: body.trim(), isAnonymous, unitNumber: CURRENT_TENANT.unitNumber });
+      await addFreePost({ title: title.trim(), body: body.trim(), isAnonymous, unitNumber: CURRENT_TENANT.unitNumber, photos });
       setSubmitted(true);
       setShowToast(true);
     } catch (err) {
@@ -66,13 +66,7 @@ export default function CommunityWriteScreen({ navigate }: { navigate: TenantNav
           />
         </div>
         <div className="px-4 pb-3">
-          <button
-            className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed active:scale-95 transition-transform"
-            style={{ width: 80, height: 80, borderColor: NAVY, opacity: 0.45 }}
-          >
-            <IconCamera size={26} />
-            <span style={{ fontSize: 10, fontWeight: 600, color: NAVY }}>사진 추가</span>
-          </button>
+          <PhotoPicker photos={photos} onChange={setPhotos} />
         </div>
         <div className="px-4 pb-6">
           <div className="flex items-center justify-between rounded-2xl border-2 bg-white px-4 py-3.5" style={{ borderColor: NAVY }}>

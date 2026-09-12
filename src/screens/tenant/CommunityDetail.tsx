@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { NAVY, ORANGE, IVORY } from "../../theme";
-import { NavHeader } from "../../ui";
+import { NavHeader, PhotoGrid } from "../../ui";
 import { IconHeart, IconComment, AvatarIcon } from "../../icons";
 import { useAppData } from "../../store";
 import { CURRENT_TENANT } from "../../data";
@@ -67,9 +67,17 @@ export default function CommunityDetailScreen({ postId, navigate }: { postId: nu
         <p className="text-sm font-medium leading-relaxed whitespace-pre-line mb-4" style={{ color: NAVY, opacity: 0.8 }}>
           {post.body}
         </p>
-        {post.hasPhoto && (
-          <div className="rounded-2xl mb-4 flex items-center justify-center" style={{ height: 160, background: "#eef0fa", border: `1.5px solid ${NAVY}20` }}>
-            <span style={{ fontSize: 40 }}>🖼️</span>
+        {post.photos.length > 0 && (
+          <div className="flex flex-col gap-2 mb-4">
+            {post.photos.map((src, i) => (
+              <img
+                key={i}
+                src={src}
+                alt={`첨부 사진 ${i + 1}`}
+                className="w-full rounded-2xl object-cover"
+                style={{ maxHeight: 320, border: `1.5px solid ${NAVY}20` }}
+              />
+            ))}
           </div>
         )}
         <div className="flex items-center gap-4 py-3 border-t border-b mb-4" style={{ borderColor: "#eee" }}>

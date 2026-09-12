@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode, CSSProperties } from "react";
 import { NAVY, ORANGE, IVORY, STATUS_COLORS, PAID_COLORS } from "./theme";
-import { IconArrowLeft } from "./icons";
+import { IconArrowLeft, IconCamera } from "./icons";
+import { MAX_PHOTOS, resizeImagesToDataUrls } from "./photo";
 
 // ─── 공용 상단 네비게이션 (친구 파일의 NavHeader) ─────────────────────────────
 export function NavHeader({
@@ -199,6 +200,100 @@ export function Pagination({ page, totalPages, onChange }: { page: number; total
           <path d="M7 4L12 9L7 14" stroke="white" strokeWidth="2.2" strokeLinecap="round" />
         </svg>
       </button>
+    </div>
+  );
+}
+
+// ─── 사진 첨부 (선택 + 미리보기 + 삭제) ─────────────────────────────────────
+// 불편사항 접수 / 커뮤니티 글쓰기에서 공용으로 씁니다. 고른 사진은 즉시
+// 브라우저에서 리사이즈 · 압축한 뒤 base64 data URL로 photos 배열에 담기고,
+// 실제 서버 저장은 등록 버튼을 눌러 addComplaint/addFreePost가 호출될 때
+// 일어납니다.
+export function PhotoPicker({ photos, onChange, max = MAX_PHOTOS }: { photos: string[]; onChange: (photos: string[]) => void; max?: number }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const remaining = max - photos.length;
+    if (remaining <= 0) return;
+    setLoading(true);
+    try {
+      const encoded = await resizeImagesToDataUrls(Array.from(files).slice(0, remaining));
+      onChange([...photos, ...encoded]);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "사진을 처리하지 못했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const remove = (idx: number) => onChange(photos.filter((_, i) => i !== idx));
+
+  return (
+    <div className="flex gap-3 flex-wrap">
+      {photos.map((src, i) => (
+        <div key={i} className="relative flex-shrink-0" style={{ width: 72, height: 72 }}>
+          <img src={src} alt={`첨부 사진 ${i + 1}`} className="w-full h-full object-cover rounded-xl" style={{ border: `2px solid ${NAVY}` }} />
+          <button
+            type="button"
+            onClick={() => remove(i)}
+            aria-label="사진 삭제"
+            className="absolute flex items-center justify-center rounded-full active:scale-90 transition-transform"
+            style={{ top: -6, right: -6, width: 20, height: 20, background: NAVY, color: "white", fontSize: 10, fontWeight: 800 }}
+          >
+            ✕
+          </button>
+        </div>
+      ))}
+      {photos.length < max && (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={loading}
+          className="flex flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed active:scale-95 transition-transform flex-shrink-0"
+          style={{ width: 72, height: 72, borderColor: NAVY, opacity: loading ? 0.3 : 0.5 }}
+        >
+          <IconCamera size={26} />
+          <span style={{ fontSize: 10, fontWeight: 600, color: NAVY }}>{loading ? "처리 중..." : "사진 추가"}</span>
+        </button>
+      )}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          void handleFiles(e.target.files);
+          e.target.value = "";
+        }}
+      />
+    </div>
+  );
+}
+
+// ─── 사진 목록 (읽기 전용 — 상세/요청함 화면에서 첨부 사진 표시) ────────────
+export function PhotoGrid({ photos, size = 80 }: { photos: string[]; size?: number }) {
+  if (photos.length === 0) {
+    return (
+      <p className="text-xs font-medium" style={{ color: NAVY, opacity: 0.35 }}>
+        첨부된 사진이 없습니다.
+      </p>
+    );
+  }
+  return (
+    <div className="flex gap-2 flex-wrap">
+      {photos.map((src, i) => (
+        <a key={i} href={src} target="_blank" rel="noreferrer" style={{ width: size, height: size }} className="flex-shrink-0">
+          <img
+            src={src}
+            alt={`첨부 사진 ${i + 1}`}
+            className="w-full h-full object-cover rounded-xl active:scale-95 transition-transform"
+            style={{ border: `1.5px solid ${NAVY}25` }}
+          />
+        </a>
+      ))}
     </div>
   );
 }
